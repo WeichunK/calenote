@@ -17,6 +17,16 @@ from app.schemas.calendar import (
     CalendarWithStats,
     CalendarList
 )
+from app.schemas.task import (
+    TaskCreate,
+    TaskUpdate,
+    TaskResponse,
+    TaskWithEntries,
+    TaskStats,
+    TaskFilter,
+    TaskSort,
+    TaskList
+)
 
 __all__ = [
     "EntryCreate",
@@ -31,4 +41,12 @@ __all__ = [
     "CalendarResponse",
     "CalendarWithStats",
     "CalendarList",
+    "TaskCreate",
+    "TaskUpdate",
+    "TaskResponse",
+    "TaskWithEntries",
+    "TaskStats",
+    "TaskFilter",
+    "TaskSort",
+    "TaskList",
 ]
