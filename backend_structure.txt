@@ -1,0 +1,101 @@
+calendar-app-backend/
+├── app/
+│   ├── __init__.py
+│   ├── main.py                    # FastAPI 應用入口
+│   ├── config.py                  # 配置管理
+│   │
+│   ├── api/                       # API 路由
+│   │   ├── __init__.py
+│   │   ├── deps.py                # 依賴注入（認證、資料庫）
+│   │   ├── v1/
+│   │   │   ├── __init__.py
+│   │   │   ├── router.py          # 路由匯總
+│   │   │   ├── auth.py            # 認證相關
+│   │   │   ├── entries.py         # 記事 API
+│   │   │   ├── tasks.py           # 任務 API
+│   │   │   ├── calendars.py       # 日曆 API
+│   │   │   ├── attachments.py     # 附件上傳
+│   │   │   ├── comments.py        # 留言
+│   │   │   └── search.py          # 搜尋
+│   │   └── websocket.py           # WebSocket 連接
+│   │
+│   ├── models/                    # SQLAlchemy Models
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   ├── calendar.py
+│   │   ├── entry.py               # 記事模型
+│   │   ├── task.py                # 任務模型
+│   │   ├── attachment.py
+│   │   ├── comment.py
+│   │   └── notification.py
+│   │
+│   ├── schemas/                   # Pydantic Schemas（API 輸入輸出）
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   ├── calendar.py
+│   │   ├── entry.py
+│   │   ├── task.py
+│   │   ├── attachment.py
+│   │   └── response.py            # 統一回應格式
+│   │
+│   ├── crud/                      # CRUD 操作
+│   │   ├── __init__.py
+│   │   ├── base.py                # 基礎 CRUD 類別
+│   │   ├── entry.py
+│   │   ├── task.py
+│   │   ├── calendar.py
+│   │   └── user.py
+│   │
+│   ├── services/                  # 業務邏輯
+│   │   ├── __init__.py
+│   │   ├── entry_service.py       # 記事相關邏輯
+│   │   ├── task_service.py        # 任務相關邏輯
+│   │   ├── calendar_service.py
+│   │   ├── notification_service.py
+│   │   ├── file_service.py        # 檔案上傳
+│   │   └── sync_service.py        # 即時同步邏輯
+│   │
+│   ├── core/                      # 核心功能
+│   │   ├── __init__.py
+│   │   ├── security.py            # 密碼雜湊、JWT
+│   │   ├── database.py            # 資料庫連接
+│   │   ├── redis.py               # Redis 連接
+│   │   └── websocket_manager.py   # WebSocket 管理器
+│   │
+│   ├── utils/                     # 工具函數
+│   │   ├── __init__.py
+│   │   ├── datetime.py
+│   │   ├── pagination.py
+│   │   └── validators.py
+│   │
+│   └── tasks/                     # Celery 背景任務
+│       ├── __init__.py
+│       ├── notifications.py       # 推播通知
+│       └── reminders.py           # 定時提醒
+│
+├── alembic/                       # 資料庫遷移
+│   ├── versions/
+│   └── env.py
+│
+├── tests/                         # 測試
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── test_entries.py
+│   ├── test_tasks.py
+│   └── test_websocket.py
+│
+├── .env.example                   # 環境變數範例
+├── .gitignore
+├── requirements.txt               # 依賴套件
+├── pyproject.toml                 # 專案配置
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+
+核心套件版本：
+- Python 3.11+
+- FastAPI 0.104+
+- SQLAlchemy 2.0+
+- Pydantic 2.0+
+- PostgreSQL 15+
+- Redis 7+
