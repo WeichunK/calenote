@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Calendar App API"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
+    RELOAD: bool = False  # 熱重載 (僅開發環境)
 
     # 資料庫
     DATABASE_URL: str

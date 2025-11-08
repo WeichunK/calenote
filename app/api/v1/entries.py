@@ -28,7 +28,7 @@ from app.services.entry_service import EntryService
 from app.core.websocket_manager import manager
 
 
-router = APIRouter(prefix="/entries", tags=["entries"])
+router = APIRouter(tags=["entries"])
 
 
 # ============================================
