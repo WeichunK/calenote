@@ -108,7 +108,7 @@ async def test_entry_operations(token: str, calendar_id: str):
             "title": "測試記事",
             "content": "這是一個測試記事內容",
             "timestamp": datetime.now().isoformat(),
-            "priority": 5
+            "priority": 2
         }
         response = await client.post(
             f"{API_V1}/entries/",
@@ -129,7 +129,11 @@ async def test_entry_operations(token: str, calendar_id: str):
             )
             if response.status_code == 200:
                 entries = response.json()
-                print(f"  ✓ 找到 {entries['total']} 個記事")
+                if isinstance(entries, list):
+                    total = len(entries)
+                else:
+                    total = entries.get('total', 0)
+                print(f"  ✓ 找到 {total} 個記事")
                 return entry["id"]
 
         return None
@@ -167,7 +171,11 @@ async def test_task_operations(token: str, calendar_id: str):
             )
             if response.status_code == 200:
                 tasks = response.json()
-                print(f"  ✓ 找到 {tasks['total']} 個任務")
+                if isinstance(tasks, list):
+                    total = len(tasks)
+                else:
+                    total = tasks.get('total', 0)
+                print(f"  ✓ 找到 {total} 個任務")
                 return task["id"]
 
         return None
