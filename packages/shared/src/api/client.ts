@@ -1,6 +1,25 @@
 // API Client - 支持 Web 和 Mobile
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 
+// Token management functions - will be overridden by specific implementations
+let getAccessTokenFn = (): string | null => null;
+let getRefreshTokenFn = (): string | null => null;
+let updateTokensFn = (access: string, refresh: string): void => {};
+let handleLogoutFn = (): void => {};
+
+// Allow injection of token management functions
+export function setTokenManagement(config: {
+  getAccessToken: () => string | null;
+  getRefreshToken: () => string | null;
+  updateTokens: (access: string, refresh: string) => void;
+  handleLogout: () => void;
+}) {
+  getAccessTokenFn = config.getAccessToken;
+  getRefreshTokenFn = config.getRefreshToken;
+  updateTokensFn = config.updateTokens;
+  handleLogoutFn = config.handleLogout;
+}
+
 export class ApiClient {
   private client: AxiosInstance;
   private baseURL: string;
@@ -23,7 +42,7 @@ export class ApiClient {
     // Request interceptor - 添加 auth token
     this.client.interceptors.request.use(
       (config) => {
-        const token = this.getToken();
+        const token = getAccessTokenFn();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -50,7 +69,7 @@ export class ApiClient {
             }
           } catch (refreshError) {
             // Redirect to login
-            this.handleLogout();
+            handleLogoutFn();
             return Promise.reject(refreshError);
           }
         }
@@ -60,28 +79,6 @@ export class ApiClient {
     );
   }
 
-  private getToken(): string | null {
-    // Web: use localStorage
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('auth_token');
-    }
-    // Mobile: should override this in mobile-specific implementation
-    return null;
-  }
-
-  private getRefreshToken(): string | null {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('refresh_token');
-    }
-    return null;
-  }
-
-  private setToken(token: string) {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('auth_token', token);
-    }
-  }
-
   private async refreshToken(): Promise<string | null> {
     // 防止多個同時的 refresh 請求
     if (this.tokenRefreshPromise) {
@@ -89,7 +86,7 @@ export class ApiClient {
     }
 
     this.tokenRefreshPromise = (async () => {
-      const refreshToken = this.getRefreshToken();
+      const refreshToken = getRefreshTokenFn();
       if (!refreshToken) {
         throw new Error('No refresh token available');
       }
@@ -98,24 +95,18 @@ export class ApiClient {
         refresh_token: refreshToken,
       });
 
-      const newToken = response.data.access_token;
-      this.setToken(newToken);
-      return newToken;
+      const { access_token, refresh_token: newRefreshToken } = response.data;
+
+      // Update tokens using injected function
+      updateTokensFn(access_token, newRefreshToken || refreshToken);
+
+      return access_token;
     })();
 
     try {
       return await this.tokenRefreshPromise;
     } finally {
       this.tokenRefreshPromise = null;
-    }
-  }
-
-  private handleLogout() {
-    // Clear tokens and redirect to login
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('refresh_token');
-      window.location.href = '/login';
     }
   }
 
@@ -149,9 +140,7 @@ export class ApiClient {
 // Factory function
 export const createApiClient = (baseURL: string) => new ApiClient(baseURL);
 
-// Default instance for web (override baseURL via env)
+// Default instance for web (base URL will be set via env)
 export const apiClient = createApiClient(
-  typeof window !== 'undefined'
-    ? (window as any).__API_URL__ || 'http://localhost:8000/api/v1'
-    : 'http://localhost:8000/api/v1'
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 );
