@@ -27,6 +27,14 @@ from app.schemas.task import (
     TaskSort,
     TaskList
 )
+from app.schemas.auth import (
+    UserRegister,
+    UserLogin,
+    UserResponse,
+    LoginResponse,
+    TokenRefreshRequest,
+    TokenRefreshResponse
+)
 
 __all__ = [
     "EntryCreate",
@@ -49,4 +57,10 @@ __all__ = [
     "TaskFilter",
     "TaskSort",
     "TaskList",
+    "UserRegister",
+    "UserLogin",
+    "UserResponse",
+    "LoginResponse",
+    "TokenRefreshRequest",
+    "TokenRefreshResponse",
 ]
