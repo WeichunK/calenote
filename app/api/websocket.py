@@ -9,8 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.websocket_manager import manager
 from app.core.database import get_db
 from app.core.security import decode_token
-# TODO: Import calendar_crud when it's created
-# from app.crud.calendar import calendar_crud
+from app.crud.calendar import calendar_crud
 
 
 router = APIRouter()
@@ -56,16 +55,16 @@ async def websocket_endpoint(
         await websocket.close(code=1008, reason="Invalid token")
         return
 
-    # TODO: 驗證日曆存取權限（當 calendar_crud 建立後啟用）
-    # has_access = await calendar_crud.check_user_access(
-    #     db,
-    #     calendar_id=calendar_id,
-    #     user_id=user_id
-    # )
-    #
-    # if not has_access:
-    #     await websocket.close(code=1008, reason="No access to calendar")
-    #     return
+    # 驗證日曆存取權限
+    has_access = await calendar_crud.check_access(
+        db,
+        calendar_id=calendar_id,
+        user_id=user_id
+    )
+
+    if not has_access:
+        await websocket.close(code=1008, reason="No access to calendar")
+        return
     
     # 接受連接
     await manager.connect(websocket, user_id, calendar_id)
