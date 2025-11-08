@@ -430,3 +430,19 @@ From `02_PLAN.md`:
 - FastAPI docs: https://fastapi.tiangolo.com
 - SQLAlchemy async: https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html
 - Alembic migrations: https://alembic.sqlalchemy.org
+
+## Development Note
+
+### 虛擬環境
+venv
+
+### commit
+在適當的時機自動 commit，使用 subagent commit-message-writer 撰寫英文 commit message，並 push 到 remote
+
+### 可用的 Agents：
+  - ✅ linus-code-reviewer - 代碼審查
+  - ✅ commit-message-writer - 生成 commit message
+  - ✅ debug-investigator - 調試問題
+  - ✅ test-architect - 創建測試
+  - ✅ docs-sync-reviewer - 更新文件
+
