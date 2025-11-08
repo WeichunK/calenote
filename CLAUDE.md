@@ -195,16 +195,6 @@ app/
     └── notification_tasks.py   # Background tasks (email, reminders)
 ```
 
-### Key Files Currently in Root
-
-The following Python files are currently in the repository root (should eventually be moved to proper `app/` structure):
-- `main.py` - FastAPI application setup
-- `entry.py` - Entry model
-- `task.py` - Task model
-- `entries.py` - Entry API routes
-- `websocket.py` - WebSocket routes
-- `websocket_manager.py` - WebSocket connection manager
-
 ### Adding New API Endpoints
 
 1. Define the SQLAlchemy model in `app/models/`

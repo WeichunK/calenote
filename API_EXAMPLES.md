@@ -205,7 +205,7 @@ curl -X POST http://localhost:8000/api/v1/entries/ \
     "content": "需要準備 PPT 和相關文件",
     "timestamp": "2025-11-10T14:00:00Z",
     "entry_type": "task",
-    "priority": 8,
+    "priority": 2,
     "tags": ["工作", "重要"]
   }'
 ```
@@ -245,7 +245,7 @@ curl -X PATCH http://localhost:8000/api/v1/entries/{entry_id} \
   -H "Content-Type: application/json" \
   -d '{
     "title": "更新後的標題",
-    "priority": 10
+    "priority": 3
   }'
 ```
 
@@ -291,7 +291,7 @@ curl -X PATCH http://localhost:8000/api/v1/entries/batch \
   -d '{
     "entry_ids": ["entry-uuid-1", "entry-uuid-2"],
     "update_data": {
-      "priority": 5,
+      "priority": 2,
       "tags": ["批量更新"]
     }
   }'
@@ -675,7 +675,7 @@ ENTRY_RESPONSE=$(curl -s -X POST http://localhost:8000/api/v1/entries/ \
     \"title\": \"撰寫文檔\",
     \"content\": \"完成技術文檔撰寫\",
     \"timestamp\": \"2025-11-10T14:00:00Z\",
-    \"priority\": 8
+    \"priority\": 2
   }")
 
 ENTRY_ID=$(echo $ENTRY_RESPONSE | jq -r '.id')
