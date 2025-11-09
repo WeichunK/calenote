@@ -464,6 +464,15 @@ venv
 - ✅ Calendar access control implemented
 - ✅ Commit: 6f560f8 (auth UI), 054c7be (auth fixes)
 
+**Epic 4: Task Backend API (COMPLETED - 2025-11-09)**
+- ✅ Task SQLAlchemy model (NO timestamp field - entry-first philosophy)
+- ✅ Complete Task Pydantic schemas (TaskCreate, TaskUpdate, TaskInDB, TaskWithEntries, TaskStats)
+- ✅ Full Task CRUD operations with calendar access control
+- ✅ Database trigger for auto progress calculation (total_entries, completed_entries)
+- ✅ 11 Task API endpoints (create, list, get, update, delete, complete, reopen, archive, stats, reorder, batch)
+- ✅ Comprehensive testing (5/5 tests passed via test_epic4.sh)
+- ✅ **Critical Fix**: TaskWithEntries.entries field type corrected from `list` to `list[EntryInDB]`
+
 **Epic 5: Calendar View (COMPLETED)**
 - ✅ Full calendar view with 42-cell grid
 - ✅ Month navigation (prev/next/today)
@@ -474,6 +483,15 @@ venv
 - ✅ Commits: 553817e (initial), 2b5450d (dialogs), 82e9df4 (tests), 667e2bd (test improvements)
 
 ### Critical Fixes ✅
+
+**Task API GET Endpoint 500 Error (Fixed in Epic 4)**
+- Issue: GET /api/v1/tasks/{id} returning 500 Internal Server Error
+- Root Cause: TaskWithEntries.entries field typed as generic `list` instead of `list[EntryInDB]`
+- Fix: Added proper type annotation and EntryInDB import in app/schemas/task.py:71
+- Impact: Task API now correctly serializes entries with full details
+- Status: ✅ RESOLVED
+
+
 
 **Authentication 500 Error (Fixed in 054c7be)**
 - Issue: Login endpoint returning 500 Internal Server Error
@@ -512,15 +530,15 @@ venv
 **Completed (100%)**:
 - ✅ Project Setup (Epic 1)
 - ✅ Authentication System (Epic 2)
-- ✅ Entry Backend API (Epic 3 - Backend)
-- ✅ Calendar View (Epic 5 - Partial)
+- ✅ Entry Backend API (Epic 3)
+- ✅ Task Backend API (Epic 4) - **NEW! 2025-11-09**
+- ✅ Calendar View (Epic 5.3)
 
 **In Progress**:
-- 🚧 Entry List View (Epic 5)
-- 🚧 Task View (Epic 5)
+- 🚧 Entry List View (Epic 5.4)
+- 🚧 Task View (Epic 5.5)
 
 **Pending**:
-- ⏳ Task Backend API (Epic 4)
 - ⏳ Real-time Sync (Epic 6)
 - ⏳ Advanced Features (Epic 7)
 - ⏳ Mobile App (Epic 8)

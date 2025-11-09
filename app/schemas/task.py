@@ -7,6 +7,9 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, ConfigDict
 
+# Import EntryInDB for TaskWithEntries
+from app.schemas.entry import EntryInDB
+
 
 class TaskBase(BaseModel):
     """Task 基礎 schema"""
@@ -64,11 +67,8 @@ class TaskResponse(TaskInDB):
 
 
 class TaskWithEntries(TaskInDB):
-    """包含記事列表的任務 schema
-
-    Note: entries field is defined using update_forward_refs() to avoid circular import
-    """
-    entries: list = Field(default_factory=list, description="任務中的記事列表")
+    """包含記事列表的任務 schema"""
+    entries: list[EntryInDB] = Field(default_factory=list, description="任務中的記事列表")
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -1181,11 +1181,57 @@ async def list_entries(
 
 ---
 
-## 📦 EPIC 4: Task Management (Backend)
+## 📦 EPIC 4: Task Management (Backend) ✅ COMPLETED (2025-11-09)
 
 **Goal:** Implement Task CRUD and entry relationship management
 
-### Story 4.1: Task Model and CRUD
+**Status**: FULLY IMPLEMENTED AND WORKING
+**Last Updated**: 2025-11-09
+**Implementation**: Models, schemas, CRUD, API endpoints, database trigger
+
+**Completed Features**:
+- ✅ Task SQLAlchemy model (NO timestamp field - entry-first philosophy)
+- ✅ Complete Task Pydantic schemas (TaskCreate, TaskUpdate, TaskInDB, TaskWithEntries, TaskStats)
+- ✅ Full Task CRUD operations with calendar access control
+- ✅ Database trigger for auto progress calculation (total_entries, completed_entries)
+- ✅ 11 Task API endpoints (create, list, get, update, delete, complete, reopen, archive, stats, reorder, batch operations)
+- ✅ Comprehensive testing (5/5 tests passed)
+
+**API Endpoints Implemented**:
+1. POST /api/v1/tasks - Create task
+2. GET /api/v1/tasks - List tasks (with filters: status, due_date, overdue)
+3. GET /api/v1/tasks/{id} - Get task with entries (TaskWithEntries schema)
+4. PATCH /api/v1/tasks/{id} - Update task
+5. DELETE /api/v1/tasks/{id} - Delete task
+6. POST /api/v1/tasks/{id}/complete - Mark task as completed
+7. POST /api/v1/tasks/{id}/reopen - Reopen completed task
+8. POST /api/v1/tasks/{id}/archive - Archive task
+9. GET /api/v1/tasks/{id}/stats - Get task statistics
+10. POST /api/v1/tasks/reorder - Reorder tasks by position
+11. PATCH /api/v1/tasks/batch - Batch update tasks
+
+**Database Trigger**:
+- ✅ `update_task_completion()` function auto-updates `total_entries` and `completed_entries`
+- ✅ Trigger fires on INSERT/UPDATE/DELETE of entries
+- ✅ Handles entry completion toggle, task assignment changes, and entry deletion
+
+**Test Results** (test_epic4.sh):
+```
+[1/5] GET /api/v1/tasks/{id} with entries - PASS
+[2/5] GET /api/v1/tasks/ list tasks - PASS
+[3/5] PATCH /api/v1/tasks/{id} update - PASS
+[4/5] GET /api/v1/tasks/{id}/stats - PASS
+[5/5] Database trigger verification - PASS (total_entries: 3, completed_entries: 0)
+```
+
+**Files**:
+- Model: `/home/weijun/calenote/app/models/task.py`
+- Schemas: `/home/weijun/calenote/app/schemas/task.py` (fixed TaskWithEntries.entries type)
+- CRUD: `/home/weijun/calenote/app/crud/task.py`
+- API: `/home/weijun/calenote/app/api/v1/tasks.py`
+- Migration: `/home/weijun/calenote/alembic/versions/43a939bb9727_initial_migration_create_users_.py` (lines 111-169)
+
+### Story 4.1: Task Model and CRUD ✅ COMPLETED
 
 #### Task 4.1.1: Create Task Model
 
