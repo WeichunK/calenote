@@ -64,6 +64,7 @@ interface EntryDialogProps {
   onOpenChange: (open: boolean) => void;
   entry?: Entry; // If provided, edit mode
   defaultDate?: Date; // If provided, pre-fill timestamp for new entry
+  defaultTaskId?: string; // If provided, pre-fill task_id for new entry
   calendarId: string; // Required for creating entries
 }
 
@@ -72,6 +73,7 @@ export function EntryDialog({
   onOpenChange,
   entry,
   defaultDate,
+  defaultTaskId,
   calendarId,
 }: EntryDialogProps) {
   const isEditMode = !!entry;
@@ -148,6 +150,7 @@ export function EntryDialog({
         priority: values.priority as 0 | 1 | 2 | 3 | undefined,
         tags,
         color: values.color || undefined,
+        task_id: defaultTaskId || undefined, // Include task_id if provided
       };
 
       if (isEditMode) {
