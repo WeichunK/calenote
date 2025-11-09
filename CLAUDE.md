@@ -51,12 +51,25 @@ Calendar ID: 24cb508f-9585-4205-9824-742af56e04ab
 3. Navigate to Calendar View
    - Click a date to create an entry
    - Click an entry to edit/delete it
+   - Toggle entry completion
 4. Navigate to Entries View
    - Use filters (entry type, scheduled/unscheduled, completed/active)
    - Try sorting options (created, timestamp, priority, title)
    - Search entries by title/content
    - Click entries to edit
-5. View smart date grouping (Today, This week, Past, Upcoming, Unscheduled)
+   - View smart date grouping (Today, This week, Past, Upcoming, Unscheduled)
+5. Navigate to Tasks View
+   - Create a new task
+   - Add entries to tasks
+   - View task progress bars
+   - Expand/collapse tasks to see entries
+   - Filter tasks by status (All/Active/Completed/Archived)
+   - Click task to view detail page
+6. Test Real-time Sync
+   - Open two browser tabs with the app
+   - Create/edit an entry in one tab
+   - Watch it appear instantly in the other tab
+   - Check connection indicator in top-right corner
 
 ### Local Development without Docker
 
@@ -459,11 +472,11 @@ venv
   - ✅ test-architect - 創建測試
   - ✅ docs-sync-reviewer - 更新文件
 
-## Recent Updates and Fixes (2025-11-09)
+## Recent Updates and Fixes (2025-11-10)
 
 ### Completed Features ✅
 
-**Epic 2: Authentication System (COMPLETED)**
+**Epic 2: Authentication System (COMPLETED - 2025-11-09)**
 - ✅ User registration and login fully functional
 - ✅ JWT-based authentication working
 - ✅ Protected routes with AuthGuard component
@@ -479,7 +492,7 @@ venv
 - ✅ Comprehensive testing (5/5 tests passed via test_epic4.sh)
 - ✅ **Critical Fix**: TaskWithEntries.entries field type corrected from `list` to `list[EntryInDB]`
 
-**Epic 5: Calendar View (COMPLETED)**
+**Epic 5.3: Calendar View (COMPLETED - 2025-11-09)**
 - ✅ Full calendar view with 42-cell grid
 - ✅ Month navigation (prev/next/today)
 - ✅ Entry CRUD operations (create/edit/delete)
@@ -499,7 +512,62 @@ venv
 - ✅ Commit: faf9a19 (feature implementation)
 - ✅ Recent fixes: 8ced013 (422 errors), d2cdf0b (dependency issues), 5455b7a (ReactQueryDevtools hydration)
 
+**Epic 5.5: Task View (COMPLETED - 2025-11-09)**
+- ✅ Task Board with status filtering (All/Active/Completed/Archived)
+- ✅ Task cards showing progress bars and completion percentage
+- ✅ Expandable entry lists within tasks
+- ✅ Task create/edit dialogs with form validation
+- ✅ Task detail pages with comprehensive entry management
+- ✅ Task deletion with confirmation
+- ✅ Entry completion toggling
+- ✅ Toast notifications for user feedback
+- ✅ Smart empty states and loading indicators
+- ✅ Component structure: TaskCard (183 lines), TaskBoard (122 lines), TaskDialog (231 lines), Task detail page (218 lines)
+- ✅ New dependencies: sonner, date-fns, react-day-picker, @radix-ui/* components
+- ✅ Commit: 649e1fa
+
+**Epic 5.6: Mobile Responsive Design (COMPLETED - 2025-11-09)**
+- ✅ Mobile-responsive layouts across all views (Calendar, Entries, Tasks)
+- ✅ Touch-optimized interactions
+- ✅ Responsive navigation
+- ✅ Breakpoint-aware component rendering
+- ✅ Commit: 0b7533a
+
+**Epic 6: Real-time Sync (WebSocket) (COMPLETED - 2025-11-10)**
+- ✅ WebSocket client with auto-reconnection
+- ✅ Exponential backoff retry strategy (1s → 2s → 4s → 8s → 16s → 30s max)
+- ✅ Heartbeat/ping-pong mechanism (30s interval, 5s timeout)
+- ✅ React Query cache integration for automatic UI updates
+- ✅ Connection status tracking and UI indicator
+- ✅ Singleton pattern implementation (fixed "Insufficient resources" bug)
+- ✅ Message types: entry:created, entry:updated, entry:deleted, entry:completed, task:updated, task:created, task:deleted
+- ✅ WebSocket architecture:
+  - `types.ts` (53 lines) - Type definitions
+  - `client.ts` (211 lines) - Core WebSocket client with reconnection logic
+  - `handlers.ts` (147 lines) - Message handlers and React Query integration
+  - `useWebSocket.ts` (81 lines) - React hook for WebSocket usage
+  - `websocketStore.ts` (40 lines) - Zustand store for connection state
+  - `singleton.ts` (49 lines) - Singleton pattern implementation
+  - `ConnectionIndicator.tsx` (58 lines) - UI component for connection status
+  - `WebSocketProvider.tsx` (98 lines) - Provider component
+- ✅ Commits: d56b077 (initial implementation), fd62198 (singleton fix)
+
+**Task-Entry Association UI (COMPLETED - 2025-11-10)**
+- ✅ "Add Entry" button in Task View
+- ✅ EntryDialog with defaultTaskId support for pre-filling task
+- ✅ Seamless entry creation within task context
+- ✅ Entry-task relationship UI flow completed
+- ✅ Commit: a8eb281
+
 ### Critical Fixes ✅
+
+**WebSocket Connection Cycling ("Insufficient resources" Error) (Fixed in fd62198)**
+- Issue: Multiple WebSocket connections being created simultaneously, causing "Insufficient resources" error
+- Root Cause: Each React component mount was creating a new WebSocket instance
+- Solution: Implemented singleton pattern to ensure only one WebSocket connection per calendar
+- Files: `singleton.ts` (new), `client.ts` (refactored to use singleton)
+- Impact: Stable WebSocket connection, no more connection cycling, reduced server load
+- Status: ✅ RESOLVED
 
 **Task API GET Endpoint 500 Error (Fixed in Epic 4)**
 - Issue: GET /api/v1/tasks/{id} returning 500 Internal Server Error
@@ -507,8 +575,6 @@ venv
 - Fix: Added proper type annotation and EntryInDB import in app/schemas/task.py:71
 - Impact: Task API now correctly serializes entries with full details
 - Status: ✅ RESOLVED
-
-
 
 **Authentication 500 Error (Fixed in 054c7be)**
 - Issue: Login endpoint returning 500 Internal Server Error
@@ -548,15 +614,28 @@ venv
 - ✅ Project Setup (Epic 1)
 - ✅ Authentication System (Epic 2)
 - ✅ Entry Backend API (Epic 3)
-- ✅ Task Backend API (Epic 4) - **NEW! 2025-11-09**
-- ✅ Calendar View (Epic 5.3)
-- ✅ Entry List View (Epic 5.4) - **NEW! 2025-11-09**
+- ✅ Task Backend API (Epic 4)
+- ✅ Frontend Core (Epic 5) - **ALL STORIES COMPLETED! 2025-11-10**
+  - ✅ Epic 5.1: Project Setup
+  - ✅ Epic 5.2: Authentication UI
+  - ✅ Epic 5.3: Calendar View
+  - ✅ Epic 5.4: Entry List View
+  - ✅ Epic 5.5: Task View
+  - ✅ Epic 5.6: Mobile Responsive Design
+- ✅ Real-time Sync (Epic 6) - **COMPLETED! 2025-11-10**
+  - ✅ WebSocket Backend (Stories 6.1.1-6.1.3)
+  - ✅ WebSocket Frontend (Stories 6.2.1-6.2.3)
+  - ✅ Connection management and auto-reconnection
+  - ✅ React Query integration
+  - ✅ Optimistic updates
 
 **In Progress**:
-- 🚧 Task View (Epic 5.5)
+- ⏳ None - Ready for Epic 7 (Advanced Features)
 
 **Pending**:
-- ⏳ Real-time Sync (Epic 6)
-- ⏳ Advanced Features (Epic 7)
-- ⏳ Mobile App (Epic 8)
+- ⏳ Advanced Features (Epic 7) - Comments, Attachments, Search
+- ⏳ Mobile App (Epic 8) - React Native
+- ⏳ Testing (Epic 9) - Comprehensive test suite
+- ⏳ Deployment (Epic 10) - Production deployment
+- ⏳ Documentation (Epic 11) - User and developer docs
 

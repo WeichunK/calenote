@@ -1363,17 +1363,20 @@ EXECUTE FUNCTION update_task_completion();
 
 ---
 
-## 🎨 EPIC 5: Frontend Core (67% Complete - 4/6 Stories)
+## 🎨 EPIC 5: Frontend Core ✅ COMPLETED (100% - 6/6 Stories)
 
 **Goal:** Build the three main views and basic UI
+
+**Status**: FULLY IMPLEMENTED - ALL VIEWS OPERATIONAL
+**Last Updated**: 2025-11-10
 
 **Progress:**
 - ✅ Story 5.1: Project Setup (COMPLETED)
 - ✅ Story 5.2: Authentication UI (COMPLETED)
-- ✅ Story 5.3: Calendar View (COMPLETED)
+- ✅ Story 5.3: Calendar View (COMPLETED - 2025-11-09)
 - ✅ Story 5.4: Entry List View (COMPLETED - 2025-11-09)
-- ⏳ Story 5.5: Task View (Not Started)
-- ⏳ Story 5.6: Mobile Responsive (Not Started)
+- ✅ Story 5.5: Task View (COMPLETED - 2025-11-09)
+- ✅ Story 5.6: Mobile Responsive (COMPLETED - 2025-11-09)
 
 ### Story 5.1: Project Setup
 
@@ -1817,13 +1820,38 @@ export const config = {
 
 ---
 
-### Story 5.5: Task View
+### Story 5.5: Task View ✅ COMPLETED (2025-11-09)
 
-#### Task 5.5.1: Create Task Board Component
+**Status**: FULLY IMPLEMENTED
+**Commit**: 649e1fa
+**Last Updated**: 2025-11-09
+
+**Implementation Summary:**
+- Task Board with kanban-style layout and status filtering
+- Task cards with progress visualization
+- Task creation and editing workflows
+- Task detail pages with comprehensive entry management
+- Full integration with Task API (Epic 4)
+
+**Components Created:**
+- `TaskCard.tsx` (183 lines) - Task card with progress bar and entry preview
+- `TaskBoard.tsx` (122 lines) - Main task board with filtering
+- `TaskDialog.tsx` (231 lines) - Task create/edit form with validation
+- `tasks/[id]/page.tsx` (218 lines) - Task detail page
+
+**New Dependencies Added:**
+- sonner (toast notifications)
+- date-fns (date formatting)
+- react-day-picker (date picker)
+- @radix-ui/react-dialog
+- @radix-ui/react-select
+- @radix-ui/react-popover
+
+#### Task 5.5.1: Create Task Board Component ✅
 
 **Description:** List of task cards
 
-**File:** `packages/web/components/tasks/TaskBoard.tsx`
+**File:** `packages/web/src/app/(dashboard)/tasks/components/TaskBoard.tsx`
 
 **Features:**
 - Card for each task
@@ -1833,20 +1861,23 @@ export const config = {
 - Add entry to task
 
 **Acceptance Criteria:**
-- [ ] Shows all tasks
-- [ ] Progress bars accurate
-- [ ] Can expand to see entries
-- [ ] Can add entry inline
+- [x] Shows all tasks
+- [x] Progress bars accurate
+- [x] Can expand to see entries
+- [x] Can add entry inline (via "Add Entry" button → EntryDialog with defaultTaskId)
 
-**Dependencies:** Task 4.1.3  
-**Estimated Time:** 3 hours  
+**Dependencies:** Task 4.1.3 ✅
+**Estimated Time:** 3 hours
+**Actual Time:** ~5 hours (expanded scope)
 **Priority:** P0
 
 ---
 
-#### Task 5.5.2: Create Task Detail View
+#### Task 5.5.2: Create Task Detail View ✅
 
 **Description:** Full-page view of single task
+
+**File:** `packages/web/src/app/(dashboard)/tasks/[id]/page.tsx`
 
 **Features:**
 - Task title and description
@@ -1856,28 +1887,75 @@ export const config = {
 - Archive completed task
 
 **Acceptance Criteria:**
-- [ ] Shows complete task info
-- [ ] Can reorder entries (drag-and-drop)
-- [ ] Can add entries
-- [ ] Can delete task
+- [x] Shows complete task info
+- [ ] Can reorder entries (drag-and-drop) - Deferred to future iteration
+- [x] Can add entries
+- [x] Can delete task
 
-**Dependencies:** Task 5.5.1  
-**Estimated Time:** 2 hours  
+**Dependencies:** Task 5.5.1 ✅
+**Estimated Time:** 2 hours
+**Actual Time:** ~3 hours
 **Priority:** P1
 
 ---
 
-## ⚡ EPIC 6: Real-time Sync
+### Story 5.6: Mobile Responsive ✅ COMPLETED (2025-11-09)
+
+**Status**: FULLY IMPLEMENTED
+**Commit**: 0b7533a
+**Last Updated**: 2025-11-09
+
+**Implementation Summary:**
+- Mobile-responsive layouts implemented across all views
+- Touch-optimized interactions
+- Responsive navigation with mobile menu
+- Breakpoint-aware component rendering
+- Tested on mobile viewport sizes
+
+**Responsive Features:**
+- Calendar View: Adapts to mobile screen sizes
+- Entries View: Optimized filtering UI for mobile
+- Tasks View: Responsive task cards and detail pages
+- Navigation: Mobile-friendly sidebar with hamburger menu
+
+**Acceptance Criteria:**
+- [x] All views work on mobile devices
+- [x] Touch interactions optimized
+- [x] Navigation responsive
+- [x] Components adapt to screen size
+
+**Dependencies:** Stories 5.3, 5.4, 5.5 ✅
+**Estimated Time:** 4 hours
+**Actual Time:** ~3 hours
+**Priority:** P1
+
+---
+
+## ⚡ EPIC 6: Real-time Sync ✅ COMPLETED (100% - All Stories)
 
 **Goal:** Implement WebSocket for live collaboration
 
-### Story 6.1: WebSocket Backend
+**Status**: FULLY IMPLEMENTED
+**Last Updated**: 2025-11-10
+**Commits**: d56b077 (initial), fd62198 (singleton fix), a8eb281 (task-entry UI)
 
-#### Task 6.1.1: Implement WebSocket Manager
+**Implementation Summary:**
+- Complete WebSocket client and server implementation
+- Auto-reconnection with exponential backoff
+- React Query integration for automatic cache updates
+- Connection status tracking and UI indicator
+- Singleton pattern to prevent connection cycling
+- Support for all entry and task events
+
+**Key Achievement**: Full real-time synchronization across all views with robust error handling and connection management.
+
+### Story 6.1: WebSocket Backend ✅ COMPLETED
+
+**Status**: BACKEND WEBSOCKET INFRASTRUCTURE COMPLETE
+
+#### Task 6.1.1: Implement WebSocket Manager ✅
 
 **File:** `backend/app/core/websocket_manager.py`
-
-(See PLAN.md for complete implementation)
 
 **Key Features:**
 - Connection management (user → calendar mapping)
@@ -1886,171 +1964,166 @@ export const config = {
 - Reconnection handling
 
 **Acceptance Criteria:**
-- [ ] Can connect with JWT token
-- [ ] Can broadcast to calendar subscribers
-- [ ] Heartbeat keeps connection alive
-- [ ] Disconnection handled gracefully
+- [x] Can connect with JWT token
+- [x] Can broadcast to calendar subscribers
+- [x] Heartbeat keeps connection alive
+- [x] Disconnection handled gracefully
 
-**Dependencies:** Task 2.2.1  
-**Estimated Time:** 3 hours  
+**Dependencies:** Task 2.2.1 ✅
+**Estimated Time:** 3 hours
 **Priority:** P0
 
 ---
 
-#### Task 6.1.2: Create WebSocket Route
+#### Task 6.1.2: Create WebSocket Route ✅
 
 **File:** `backend/app/api/websocket.py`
 
-**Endpoint:** `wss://api/ws/calendar/:calendarId?token=JWT`
+**Endpoint:** `ws://localhost:8000/ws/{calendar_id}?token=JWT`
 
 **Acceptance Criteria:**
-- [ ] Accepts WebSocket connections
-- [ ] Validates JWT token
-- [ ] Verifies calendar access
-- [ ] Handles client messages
-- [ ] Broadcasts server events
+- [x] Accepts WebSocket connections
+- [x] Validates JWT token
+- [x] Verifies calendar access
+- [x] Handles client messages (ping/pong)
+- [x] Broadcasts server events
 
-**Dependencies:** Task 6.1.1  
-**Estimated Time:** 2 hours  
+**Dependencies:** Task 6.1.1 ✅
+**Estimated Time:** 2 hours
 **Priority:** P0
 
 ---
 
-#### Task 6.1.3: Integrate WebSocket with Entry/Task Updates
+#### Task 6.1.3: Integrate WebSocket with Entry/Task Updates ✅
 
 **Description:** Broadcast changes via WebSocket
 
-**Modification Points:**
+**Implementation:**
 - After creating entry → broadcast `entry:created`
 - After updating entry → broadcast `entry:updated`
 - After deleting entry → broadcast `entry:deleted`
 - After completing entry → broadcast `entry:completed`
-- After task update → broadcast `task:updated`
-
-**Example:**
-```python
-# In entries.py after creating entry
-await manager.broadcast_to_calendar(
-    calendar_id=entry.calendar_id,
-    message={
-        "type": "entry:created",
-        "data": EntryInDB.from_orm(entry).dict()
-    },
-    exclude_user=current_user.id  # Don't send to creator
-)
-```
+- After creating task → broadcast `task:created`
+- After updating task → broadcast `task:updated`
+- After deleting task → broadcast `task:deleted`
 
 **Acceptance Criteria:**
-- [ ] All entry changes broadcast
-- [ ] All task changes broadcast
-- [ ] Creator excluded from broadcast
-- [ ] Proper event types used
+- [x] All entry changes broadcast
+- [x] All task changes broadcast
+- [x] Creator excluded from broadcast
+- [x] Proper event types used
 
-**Dependencies:** Tasks 6.1.2, 3.2.*  
-**Estimated Time:** 2 hours  
+**Dependencies:** Tasks 6.1.2, 3.2.* ✅
+**Estimated Time:** 2 hours
 **Priority:** P0
 
 ---
 
-### Story 6.2: WebSocket Frontend
+### Story 6.2: WebSocket Frontend ✅ COMPLETED
 
-#### Task 6.2.1: Create WebSocket Client
+**Status**: FRONTEND WEBSOCKET CLIENT COMPLETE
 
-**File:** `packages/shared/api/websocket.ts`
+**Files Created:**
+- `src/lib/websocket/types.ts` (53 lines) - TypeScript type definitions
+- `src/lib/websocket/client.ts` (211 lines) - Core WebSocket client
+- `src/lib/websocket/handlers.ts` (147 lines) - Message handlers
+- `src/lib/websocket/useWebSocket.ts` (81 lines) - React hook
+- `src/lib/websocket/singleton.ts` (49 lines) - Singleton pattern
+- `src/lib/stores/websocketStore.ts` (40 lines) - Connection state store
+- `src/components/connection/ConnectionIndicator.tsx` (58 lines) - UI indicator
+- `src/lib/websocket/WebSocketProvider.tsx` (98 lines) - Provider component
+
+#### Task 6.2.1: Create WebSocket Client ✅
+
+**File:** `packages/web/src/lib/websocket/client.ts`
 
 **Features:**
 - Connect with JWT token
-- Auto-reconnect with exponential backoff
-- Heartbeat/ping
-- Message handlers
-- Event emitter for components
+- Auto-reconnect with exponential backoff (1s → 2s → 4s → 8s → 16s → 30s max)
+- Heartbeat/ping-pong (30s interval, 5s timeout)
+- Message handlers with event emitter pattern
+- Singleton pattern to prevent multiple connections
 
 **Acceptance Criteria:**
-- [ ] Connects to WebSocket server
-- [ ] Reconnects on disconnect
-- [ ] Heartbeat sent every 30s
-- [ ] Can register message handlers
+- [x] Connects to WebSocket server
+- [x] Reconnects on disconnect with exponential backoff
+- [x] Heartbeat sent every 30s
+- [x] Can register message handlers
+- [x] Singleton prevents connection cycling
 
-**Dependencies:** Task 6.1.2  
-**Estimated Time:** 2 hours  
+**Dependencies:** Task 6.1.2 ✅
+**Estimated Time:** 2 hours
+**Actual Time:** ~4 hours (expanded scope with singleton pattern)
 **Priority:** P0
 
 ---
 
-#### Task 6.2.2: Integrate WebSocket with Stores
+#### Task 6.2.2: Integrate WebSocket with React Query ✅
 
-**Description:** Update Zustand stores on WebSocket events
+**Description:** Update React Query cache on WebSocket events
+
+**File:** `packages/web/src/lib/websocket/handlers.ts`
 
 **Implementation:**
 ```typescript
-// In entriesStore.ts
-wsClient.on('entry:created', (entry) => {
-  useEntriesStore.getState().addEntry(entry);
-});
+// Entry event handlers update React Query cache
+handleEntryCreated(data: Entry) {
+  queryClient.setQueryData(['entries'], (old: Entry[] | undefined) =>
+    old ? [...old, data] : [data]
+  );
+}
 
-wsClient.on('entry:updated', ({ id, changes }) => {
-  useEntriesStore.getState().updateEntry(id, changes);
-});
+handleEntryUpdated(data: Entry) {
+  queryClient.setQueryData(['entries'], (old: Entry[] | undefined) =>
+    old?.map(e => e.id === data.id ? data : e)
+  );
+}
 
-wsClient.on('entry:deleted', ({ id }) => {
-  useEntriesStore.getState().deleteEntry(id);
-});
+// Similar handlers for tasks
 ```
 
 **Acceptance Criteria:**
-- [ ] Entry changes reflected in store
-- [ ] Task changes reflected in store
-- [ ] UI updates automatically
-- [ ] No race conditions with API calls
+- [x] Entry changes reflected in React Query cache
+- [x] Task changes reflected in React Query cache
+- [x] UI updates automatically across all views
+- [x] No race conditions with API calls
 
-**Dependencies:** Tasks 6.2.1, 5.1.2  
-**Estimated Time:** 1.5 hours  
+**Dependencies:** Tasks 6.2.1, 5.1.3 ✅
+**Estimated Time:** 1.5 hours
+**Actual Time:** ~2 hours
 **Priority:** P0
 
 ---
 
-#### Task 6.2.3: Add Optimistic Updates
+#### Task 6.2.3: Add Optimistic Updates ✅
 
 **Description:** Update UI before API confirms
 
-**Strategy:**
-```typescript
-const { mutate } = useMutation({
-  mutationFn: updateEntry,
-  onMutate: async (variables) => {
-    // Cancel outgoing queries
-    await queryClient.cancelQueries(['entries']);
-    
-    // Snapshot previous value
-    const previous = queryClient.getQueryData(['entries']);
-    
-    // Optimistically update
-    queryClient.setQueryData(['entries'], (old) => 
-      old.map(e => e.id === variables.id ? { ...e, ...variables.updates } : e)
-    );
-    
-    return { previous };
-  },
-  onError: (err, variables, context) => {
-    // Rollback on error
-    queryClient.setQueryData(['entries'], context.previous);
-  },
-  onSettled: () => {
-    // Refetch after mutation
-    queryClient.invalidateQueries(['entries']);
-  }
-});
-```
+**Implementation:**
+- Optimistic updates implemented in mutation hooks
+- React Query's `onMutate`, `onError`, `onSettled` callbacks used
+- Rollback on error with context snapshots
+- WebSocket updates merged with optimistic state
 
 **Acceptance Criteria:**
-- [ ] UI updates immediately
-- [ ] Rolls back on error
-- [ ] Syncs with server after success
-- [ ] Works with WebSocket updates
+- [x] UI updates immediately on user action
+- [x] Rolls back on error
+- [x] Syncs with server after success
+- [x] Works harmoniously with WebSocket updates
 
-**Dependencies:** Task 5.1.3  
-**Estimated Time:** 2 hours  
+**Dependencies:** Task 5.1.3 ✅
+**Estimated Time:** 2 hours
+**Actual Time:** ~1.5 hours (already partially implemented)
 **Priority:** P1
+
+---
+
+### Critical Bug Fix: WebSocket Singleton Pattern (fd62198)
+
+**Issue:** Multiple WebSocket connections being created, causing "Insufficient resources" error
+**Root Cause:** Each React component mount created a new WebSocket instance
+**Solution:** Implemented singleton pattern in `singleton.ts` to ensure only one connection per calendar
+**Impact:** Stable connection, reduced server load, no more connection cycling
 
 ---
 
