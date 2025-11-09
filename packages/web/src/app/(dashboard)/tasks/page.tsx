@@ -3,13 +3,22 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Task } from '@calenote/shared';
+import { useCalendars } from '@/lib/hooks/useCalendars';
+import { useWebSocket } from '@/lib/websocket/useWebSocket';
 import { TaskBoard } from '@/components/tasks/TaskBoard';
 import { TaskDialog } from '@/components/tasks/TaskDialog';
 
 export default function TasksPage() {
   const router = useRouter();
+  const { currentCalendar } = useCalendars();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  // Connect to WebSocket for real-time updates
+  useWebSocket({
+    calendarId: currentCalendar?.id || '',
+    enabled: !!currentCalendar?.id,
+  });
 
   const handleCreateTask = () => {
     setSelectedTask(null);

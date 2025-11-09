@@ -6,6 +6,7 @@ import { useCalendar } from '@/lib/hooks/useCalendar';
 import { useCalendars } from '@/lib/hooks/useCalendars';
 import { useEntries } from '@/lib/hooks/useEntries';
 import { useCalendarStore } from '@/lib/stores/calendarStore';
+import { useWebSocket } from '@/lib/websocket/useWebSocket';
 import { formatDate, startOfMonth, endOfMonth, groupEntriesByDate } from '@/lib/utils/calendar';
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarGrid } from './CalendarGrid';
@@ -26,6 +27,12 @@ export function CalendarView() {
   // Fetch calendars and auto-select default
   useCalendars();
   const currentCalendarId = useCalendarStore((state) => state.currentCalendarId);
+
+  // Connect to WebSocket for real-time updates
+  useWebSocket({
+    calendarId: currentCalendarId || '',
+    enabled: !!currentCalendarId,
+  });
 
   // Fetch entries for current month
   const { data: entries, isLoading, error } = useEntries(

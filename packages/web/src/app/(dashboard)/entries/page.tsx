@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useEntries } from '@/lib/hooks/useEntries';
 import { useCalendars } from '@/lib/hooks/useCalendars';
+import { useWebSocket } from '@/lib/websocket/useWebSocket';
 import type { Entry } from '@calenote/shared';
 import { FilterSortBar, type FilterSortState } from './components/FilterSortBar';
 import { EntriesList } from './components/EntriesList';
@@ -12,6 +13,12 @@ import { EntryDialog } from '../calendar/components/EntryDialog';
 
 export default function EntriesPage() {
   const { currentCalendar } = useCalendars();
+
+  // Connect to WebSocket for real-time updates
+  useWebSocket({
+    calendarId: currentCalendar?.id || '',
+    enabled: !!currentCalendar?.id,
+  });
 
   // Filters and sort state
   const [filters, setFilters] = useState<FilterSortState>({
