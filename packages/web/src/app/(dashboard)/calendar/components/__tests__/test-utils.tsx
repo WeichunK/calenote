@@ -82,6 +82,28 @@ export function createMockEntries(count: number, baseOverrides: Partial<Entry> =
   );
 }
 
+/**
+ * Helper function to get the first match when dealing with responsive duplicates
+ *
+ * Many components render both mobile and desktop versions using CSS classes like
+ * 'hidden sm:block' and 'sm:hidden'. In tests, both versions exist in the DOM,
+ * causing queries like getByText to fail with "multiple elements found".
+ *
+ * This helper uses getAllByText and returns the first match, making tests more
+ * resilient to responsive design patterns.
+ *
+ * @example
+ * // Instead of: screen.getByText('Entry 1')
+ * // Use: getFirstByText(screen, 'Entry 1')
+ */
+export function getFirstByText(
+  container: ReturnType<typeof screen>,
+  text: string | RegExp
+): HTMLElement {
+  const elements = container.getAllByText(text);
+  return elements[0];
+}
+
 // Re-export everything from React Testing Library
 export * from '@testing-library/react';
 export { userEvent };

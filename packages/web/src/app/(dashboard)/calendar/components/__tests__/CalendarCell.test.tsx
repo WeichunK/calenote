@@ -1,7 +1,7 @@
 import { describe, test, expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 import { CalendarCell } from '../CalendarCell';
-import { renderWithProviders, createMockEntries, createMockEntry } from './test-utils';
+import { renderWithProviders, createMockEntries, createMockEntry, getFirstByText } from './test-utils';
 
 describe('CalendarCell', () => {
   const mockOnDateClick = jest.fn();
@@ -142,9 +142,10 @@ describe('CalendarCell', () => {
         />
       );
 
-      expect(screen.getByText('Entry 1')).toBeInTheDocument();
-      expect(screen.getByText('Entry 2')).toBeInTheDocument();
-      expect(screen.getByText('Entry 3')).toBeInTheDocument();
+      // Note: Each entry appears twice (mobile + desktop), so we use getAllByText
+      expect(screen.getAllByText('Entry 1')).toHaveLength(2); // mobile + desktop
+      expect(screen.getAllByText('Entry 2')).toHaveLength(2);
+      expect(screen.getAllByText('Entry 3')).toHaveLength(2);
     });
 
     test('shows "+N more" button when more than 3 entries', () => {
@@ -163,12 +164,12 @@ describe('CalendarCell', () => {
         />
       );
 
-      // Only first 3 entries displayed
-      expect(screen.getByText('Entry 1')).toBeInTheDocument();
-      expect(screen.getByText('Entry 2')).toBeInTheDocument();
-      expect(screen.getByText('Entry 3')).toBeInTheDocument();
+      // Only first 3 entries displayed (each appears twice: mobile + desktop)
+      expect(screen.getAllByText('Entry 1')).toHaveLength(2);
+      expect(screen.getAllByText('Entry 2')).toHaveLength(2);
+      expect(screen.getAllByText('Entry 3')).toHaveLength(2);
 
-      // "+2 more" button shown
+      // "+2 more" button shown (only once - no responsive duplicate for this button)
       expect(screen.getByText('+2 more')).toBeInTheDocument();
     });
 
@@ -267,8 +268,9 @@ describe('CalendarCell', () => {
         />
       );
 
-      const entryButton = screen.getByText(/Test Entry/);
-      await user.click(entryButton);
+      // Get the first entry button (there are 2 due to mobile/desktop responsive design)
+      const entryButtons = screen.getAllByText(/Test Entry/);
+      await user.click(entryButtons[0]);
 
       expect(mockOnEntryClick).toHaveBeenCalledTimes(1);
       expect(mockOnEntryClick).toHaveBeenCalledWith(entry);

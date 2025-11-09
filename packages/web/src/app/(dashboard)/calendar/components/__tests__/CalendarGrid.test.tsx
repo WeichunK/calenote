@@ -165,7 +165,7 @@ describe('CalendarGrid', () => {
 
       const cells = screen.getAllByTestId('calendar-cell');
 
-      // Find the cell for March 15 (should have 2 entries)
+      // Find the cell for March 15 (should have 2 entries, but each appears twice for mobile/desktop)
       const march15Cell = cells.find(cell => {
         const dateStr = cell.getAttribute('data-date');
         if (!dateStr) return false;
@@ -173,9 +173,10 @@ describe('CalendarGrid', () => {
         return date.getDate() === 15 && date.getMonth() === 2;
       });
       expect(march15Cell).toBeInTheDocument();
-      expect(march15Cell?.querySelectorAll('[data-testid="entry-badge"]')).toHaveLength(2);
+      // 2 entries × 2 (mobile + desktop) = 4 entry badges
+      expect(march15Cell?.querySelectorAll('[data-testid="entry-badge"]')).toHaveLength(4);
 
-      // Find the cell for March 16 (should have 3 entries)
+      // Find the cell for March 16 (should have 3 entries, but each appears twice for mobile/desktop)
       const march16Cell = cells.find(cell => {
         const dateStr = cell.getAttribute('data-date');
         if (!dateStr) return false;
@@ -183,7 +184,8 @@ describe('CalendarGrid', () => {
         return date.getDate() === 16 && date.getMonth() === 2;
       });
       expect(march16Cell).toBeInTheDocument();
-      expect(march16Cell?.querySelectorAll('[data-testid="entry-badge"]')).toHaveLength(3);
+      // 3 entries × 2 (mobile + desktop) = 6 entry badges
+      expect(march16Cell?.querySelectorAll('[data-testid="entry-badge"]')).toHaveLength(6);
     });
 
     test('handles entries without timestamps', () => {
