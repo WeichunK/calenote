@@ -13,6 +13,7 @@ if (typeof Element !== 'undefined') {
   Element.prototype.hasPointerCapture = jest.fn(() => false);
   Element.prototype.setPointerCapture = jest.fn();
   Element.prototype.releasePointerCapture = jest.fn();
+  Element.prototype.scrollIntoView = jest.fn();
 }
 
 // Mock next/navigation

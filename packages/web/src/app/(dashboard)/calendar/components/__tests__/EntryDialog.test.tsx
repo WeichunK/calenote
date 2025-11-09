@@ -2,43 +2,32 @@ import { describe, test, expect, jest, beforeEach } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { EntryDialog } from '../EntryDialog';
 import { renderWithProviders, createMockEntry } from './test-utils';
-import * as useEntriesHooks from '@/lib/hooks/useEntries';
 
-// Mock the entry mutation hooks
-const mockCreateEntry = {
-  mutateAsync: jest.fn(),
-  mutate: jest.fn(),
-  isPending: false,
+// Mock functions that will be returned by the hooks
+const mockMutateAsync = jest.fn();
+const mockMutate = jest.fn();
+const mockReset = jest.fn();
+
+// Mock hooks that return configurable mutation objects
+const mockUseCreateEntry = jest.fn();
+const mockUseUpdateEntry = jest.fn();
+const mockUseDeleteEntry = jest.fn();
+
+// Factory function to create mock mutation objects
+const createMockMutation = (isPending = false) => ({
+  mutateAsync: mockMutateAsync,
+  mutate: mockMutate,
+  isPending,
   isError: false,
   isSuccess: false,
   error: null,
-  reset: jest.fn(),
-};
-
-const mockUpdateEntry = {
-  mutateAsync: jest.fn(),
-  mutate: jest.fn(),
-  isPending: false,
-  isError: false,
-  isSuccess: false,
-  error: null,
-  reset: jest.fn(),
-};
-
-const mockDeleteEntry = {
-  mutateAsync: jest.fn(),
-  mutate: jest.fn(),
-  isPending: false,
-  isError: false,
-  isSuccess: false,
-  error: null,
-  reset: jest.fn(),
-};
+  reset: mockReset,
+});
 
 jest.mock('@/lib/hooks/useEntries', () => ({
-  useCreateEntry: jest.fn(() => mockCreateEntry),
-  useUpdateEntry: jest.fn(() => mockUpdateEntry),
-  useDeleteEntry: jest.fn(() => mockDeleteEntry),
+  useCreateEntry: jest.fn((...args) => mockUseCreateEntry(...args)),
+  useUpdateEntry: jest.fn((...args) => mockUseUpdateEntry(...args)),
+  useDeleteEntry: jest.fn((...args) => mockUseDeleteEntry(...args)),
 }));
 
 describe('EntryDialog', () => {
@@ -47,10 +36,14 @@ describe('EntryDialog', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCreateEntry.mutateAsync.mockResolvedValue({});
-    mockUpdateEntry.mutateAsync.mockResolvedValue({});
-    mockDeleteEntry.mutateAsync.mockResolvedValue({});
+    // Configure default success behavior for mutations
+    mockMutateAsync.mockResolvedValue({});
     (global.confirm as jest.Mock).mockReturnValue(true);
+
+    // Reset mock hooks to return default (non-pending) mutations
+    mockUseCreateEntry.mockReturnValue(createMockMutation());
+    mockUseUpdateEntry.mockReturnValue(createMockMutation());
+    mockUseDeleteEntry.mockReturnValue(createMockMutation());
   });
 
   describe('Display Modes', () => {
@@ -201,7 +194,7 @@ describe('EntryDialog', () => {
         expect(screen.getByText(/title is required/i)).toBeInTheDocument();
       });
 
-      expect(mockCreateEntry.mutateAsync).not.toHaveBeenCalled();
+      expect(mockMutateAsync).not.toHaveBeenCalled();
     });
 
     test('shows error when title exceeds 200 characters', async () => {
@@ -226,7 +219,7 @@ describe('EntryDialog', () => {
         expect(screen.getByText(/200 characters or less/i)).toBeInTheDocument();
       });
 
-      expect(mockCreateEntry.mutateAsync).not.toHaveBeenCalled();
+      expect(mockMutateAsync).not.toHaveBeenCalled();
     });
   });
 
@@ -250,7 +243,7 @@ describe('EntryDialog', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(mockCreateEntry.mutateAsync).toHaveBeenCalledWith(
+        expect(mockMutateAsync).toHaveBeenCalledWith(
           expect.objectContaining({
             calendar_id: calendarId,
             title: 'New Meeting',
@@ -282,7 +275,7 @@ describe('EntryDialog', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(mockCreateEntry.mutateAsync).toHaveBeenCalledWith(
+        expect(mockMutateAsync).toHaveBeenCalledWith(
           expect.objectContaining({
             tags: ['work', 'urgent', 'meeting'],
           })
@@ -313,7 +306,7 @@ describe('EntryDialog', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(mockCreateEntry.mutateAsync).toHaveBeenCalledWith(
+        expect(mockMutateAsync).toHaveBeenCalledWith(
           expect.objectContaining({
             priority: 3, // Should be number, not string "3"
           })
@@ -366,7 +359,7 @@ describe('EntryDialog', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(mockUpdateEntry.mutateAsync).toHaveBeenCalledWith({
+        expect(mockMutateAsync).toHaveBeenCalledWith({
           id: 'entry-1',
           data: expect.objectContaining({
             title: 'Updated Title',
@@ -434,7 +427,7 @@ describe('EntryDialog', () => {
       await user.click(deleteButton);
 
       await waitFor(() => {
-        expect(mockDeleteEntry.mutateAsync).toHaveBeenCalledWith('entry-1');
+        expect(mockMutateAsync).toHaveBeenCalledWith('entry-1');
       });
 
       expect(mockOnOpenChange).toHaveBeenCalledWith(false);
@@ -456,14 +449,14 @@ describe('EntryDialog', () => {
       const deleteButton = screen.getByRole('button', { name: /delete/i });
       await user.click(deleteButton);
 
-      expect(mockDeleteEntry.mutateAsync).not.toHaveBeenCalled();
+      expect(mockMutateAsync).not.toHaveBeenCalled();
       expect(mockOnOpenChange).not.toHaveBeenCalled();
     });
   });
 
   describe('Error Handling', () => {
     test('displays error message on mutation failure', async () => {
-      mockCreateEntry.mutateAsync.mockRejectedValue(new Error('Network error'));
+      mockMutateAsync.mockRejectedValueOnce(new Error('Network error'));
 
       const { user } = renderWithProviders(
         <EntryDialog
@@ -487,7 +480,7 @@ describe('EntryDialog', () => {
     });
 
     test('displays generic error message for unknown errors', async () => {
-      mockCreateEntry.mutateAsync.mockRejectedValue('Unknown error');
+      mockMutateAsync.mockRejectedValueOnce('Unknown error');
 
       const { user } = renderWithProviders(
         <EntryDialog
@@ -547,7 +540,8 @@ describe('EntryDialog', () => {
 
   describe('Loading States', () => {
     test('disables submit button while mutation is pending', async () => {
-      mockCreateEntry.isPending = true;
+      // Configure mock to return pending state
+      mockUseCreateEntry.mockReturnValue(createMockMutation(true));
 
       renderWithProviders(
         <EntryDialog
@@ -563,7 +557,8 @@ describe('EntryDialog', () => {
 
     test('disables delete button while deletion is pending', async () => {
       const entry = createMockEntry({ title: 'Test' });
-      mockDeleteEntry.isPending = true;
+      // Configure mock to return pending state
+      mockUseDeleteEntry.mockReturnValue(createMockMutation(true));
 
       renderWithProviders(
         <EntryDialog
