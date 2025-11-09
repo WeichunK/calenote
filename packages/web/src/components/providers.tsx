@@ -7,15 +7,20 @@ import { queryClient } from '@/lib/queryClient';
 import { setupApiClient } from '@/lib/api-setup';
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  // Track client-side mount to avoid hydration mismatch with DevTools
+  const [isMounted, setIsMounted] = React.useState(false);
+
   // Setup API client on mount
   React.useEffect(() => {
     setupApiClient();
+    setIsMounted(true);
   }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* Only render DevTools after client-side hydration to prevent hydration mismatch */}
+      {isMounted && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   );
 }
