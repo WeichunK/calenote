@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon, Loader2 } from 'lucide-react';
 import type { Task, CreateTaskDTO, UpdateTaskDTO } from '@calenote/shared';
@@ -40,43 +40,51 @@ interface TaskDialogProps {
   task?: Task | null; // If provided, edit mode
 }
 
+/**
+ * TaskDialog - Create/Edit Task Form
+ *
+ * Uses delta-based state pattern:
+ * - Props (task) = source of truth (server data)
+ * - State (editedFields) = user's uncommitted changes (deltas only)
+ * - Display = merge(props, state)
+ * - Save = send deltas to server (PATCH) or full object (POST)
+ * - Reset = clear state
+ *
+ * This eliminates useEffect synchronization and prevents race conditions.
+ */
 export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
   const { currentCalendar } = useCalendars();
   const { toast } = useToast();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
-  const [status, setStatus] = useState<'active' | 'completed' | 'archived' | 'cancelled'>('active');
-  const [color, setColor] = useState<string>('');
-  const [icon, setIcon] = useState<string>('');
+  const isEdit = !!task;
 
-  // Initialize form with task data when editing
-  useEffect(() => {
-    if (task) {
-      setTitle(task.title);
-      setDescription(task.description || '');
-      setDueDate(task.due_date ? new Date(task.due_date) : undefined);
-      setStatus(task.status);
-      setColor(task.color || '');
-      setIcon(task.icon || '');
-    } else {
-      // Reset form for create mode
-      setTitle('');
-      setDescription('');
-      setDueDate(undefined);
-      setStatus('active');
-      setColor('');
-      setIcon('');
-    }
-  }, [task, open]);
+  // Base data: from props (edit mode) or defaults (create mode)
+  const baseData = task || {
+    title: '',
+    description: '',
+    status: 'active' as const,
+    color: '',
+    icon: '',
+    due_date: undefined,
+  };
+
+  // State: Only store what the user has changed (deltas)
+  const [editedFields, setEditedFields] = useState<Partial<Task>>({});
+
+  // Current display data: merge base + edits
+  const currentData = { ...baseData, ...editedFields };
+
+  // Generic field update handler
+  const updateField = <K extends keyof Task>(field: K, value: Task[K]) => {
+    setEditedFields(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title.trim()) {
+    if (!currentData.title?.trim()) {
       toast({
         title: 'Error',
         description: 'Task title is required',
@@ -95,31 +103,33 @@ export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
     }
 
     try {
-      if (task) {
-        // Update existing task
+      if (isEdit) {
+        // PATCH: Send only changed fields
         const data: UpdateTaskDTO = {
-          title: title.trim(),
-          description: description.trim() || undefined,
-          due_date: dueDate ? dueDate.toISOString() : undefined,
-          status,
-          color: color || undefined,
-          icon: icon || undefined,
+          ...editedFields,
+          title: editedFields.title ? editedFields.title.trim() : undefined,
+          description: editedFields.description ? editedFields.description.trim() || undefined : undefined,
         };
 
-        await updateTask.mutateAsync({ id: task.id, data });
+        // Remove undefined values (don't send fields that weren't changed)
+        const cleanData = Object.fromEntries(
+          Object.entries(data).filter(([_, v]) => v !== undefined)
+        ) as UpdateTaskDTO;
+
+        await updateTask.mutateAsync({ id: task.id, data: cleanData });
         toast({
           title: 'Success',
           description: 'Task updated successfully',
         });
       } else {
-        // Create new task
+        // POST: Send full object
         const data: CreateTaskDTO = {
           calendar_id: currentCalendar.id,
-          title: title.trim(),
-          description: description.trim() || undefined,
-          due_date: dueDate ? dueDate.toISOString() : undefined,
-          color: color || undefined,
-          icon: icon || undefined,
+          title: currentData.title.trim(),
+          description: currentData.description?.trim() || undefined,
+          due_date: currentData.due_date,
+          color: currentData.color || undefined,
+          icon: currentData.icon || undefined,
         };
 
         await createTask.mutateAsync(data);
@@ -129,25 +139,35 @@ export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
         });
       }
 
+      // Reset and close
+      setEditedFields({});
       onOpenChange(false);
     } catch (error) {
       toast({
         title: 'Error',
-        description: task ? 'Failed to update task' : 'Failed to create task',
+        description: isEdit ? 'Failed to update task' : 'Failed to create task',
         variant: 'destructive',
       });
     }
   };
 
+  const handleCancel = () => {
+    setEditedFields({}); // Discard all changes
+    onOpenChange(false);
+  };
+
   const isLoading = createTask.isPending || updateTask.isPending;
 
+  // Parse due_date to Date object for Calendar component
+  const dueDate = currentData.due_date ? new Date(currentData.due_date) : undefined;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleCancel}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{task ? 'Edit Task' : 'Create New Task'}</DialogTitle>
+          <DialogTitle>{isEdit ? 'Edit Task' : 'Create New Task'}</DialogTitle>
           <DialogDescription>
-            {task
+            {isEdit
               ? 'Update the task details below'
               : 'Create a new task to organize your entries'}
           </DialogDescription>
@@ -163,8 +183,8 @@ export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
               <Input
                 id="title"
                 placeholder="Enter task title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                value={currentData.title}
+                onChange={(e) => updateField('title', e.target.value)}
                 disabled={isLoading}
                 required
               />
@@ -176,18 +196,22 @@ export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
               <Textarea
                 id="description"
                 placeholder="Add a description (optional)"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                value={currentData.description || ''}
+                onChange={(e) => updateField('description', e.target.value)}
                 disabled={isLoading}
                 rows={3}
               />
             </div>
 
             {/* Status (only show when editing) */}
-            {task && (
+            {isEdit && (
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <Select value={status} onValueChange={(v: any) => setStatus(v)} disabled={isLoading}>
+                <Select
+                  value={currentData.status}
+                  onValueChange={(v: any) => updateField('status', v)}
+                  disabled={isLoading}
+                >
                   <SelectTrigger id="status">
                     <SelectValue />
                   </SelectTrigger>
@@ -222,7 +246,7 @@ export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
                   <Calendar
                     mode="single"
                     selected={dueDate}
-                    onSelect={setDueDate}
+                    onSelect={(date) => updateField('due_date', date?.toISOString())}
                     initialFocus
                   />
                   {dueDate && (
@@ -231,7 +255,7 @@ export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
                         variant="ghost"
                         size="sm"
                         className="w-full"
-                        onClick={() => setDueDate(undefined)}
+                        onClick={() => updateField('due_date', undefined)}
                       >
                         Clear Date
                       </Button>
@@ -241,15 +265,15 @@ export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
               </Popover>
             </div>
 
-            {/* Icon and Color (optional advanced fields) */}
+            {/* Icon and Color */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="icon">Icon (Emoji)</Label>
                 <Input
                   id="icon"
                   placeholder="📝"
-                  value={icon}
-                  onChange={(e) => setIcon(e.target.value)}
+                  value={currentData.icon || ''}
+                  onChange={(e) => updateField('icon', e.target.value)}
                   disabled={isLoading}
                   maxLength={2}
                 />
@@ -260,8 +284,8 @@ export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
                 <Input
                   id="color"
                   type="color"
-                  value={color || '#3b82f6'}
-                  onChange={(e) => setColor(e.target.value)}
+                  value={currentData.color || '#3b82f6'}
+                  onChange={(e) => updateField('color', e.target.value)}
                   disabled={isLoading}
                 />
               </div>
@@ -272,14 +296,14 @@ export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={handleCancel}
               disabled={isLoading}
             >
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {task ? 'Update Task' : 'Create Task'}
+              {isEdit ? 'Update Task' : 'Create Task'}
             </Button>
           </DialogFooter>
         </form>
