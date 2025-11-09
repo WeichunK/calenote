@@ -2,10 +2,15 @@
 import { apiClient } from './client';
 import type { Calendar, CreateCalendarDTO, UpdateCalendarDTO } from '../types/calendar';
 
+interface CalendarListResponse {
+  calendars: Calendar[];
+  total: number;
+}
+
 export const calendarsApi = {
   // 獲取所有 calendars
   getCalendars: () => {
-    return apiClient.get<Calendar[]>('/calendars');
+    return apiClient.get<CalendarListResponse>('/calendars');
   },
 
   // 獲取單個 calendar

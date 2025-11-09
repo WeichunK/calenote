@@ -24,6 +24,7 @@ aioredis==2.0.1              # 異步 Redis
 # ============================================
 python-jose[cryptography]==3.3.0  # JWT
 passlib[bcrypt]==1.7.4            # 密碼雜湊
+bcrypt==3.2.2                     # Pin bcrypt version for passlib compatibility
 python-dotenv==1.0.0              # 環境變數
 
 # ============================================

@@ -42,7 +42,7 @@ const entryFormSchema = z.object({
   entry_type: z.enum(['event', 'note', 'reminder']),
   timestamp: z.string().optional(),
   end_timestamp: z.string().optional(),
-  is_all_day: z.boolean().default(false),
+  is_all_day: z.boolean().optional(),
   priority: z.number().int().min(0).max(3).optional(),
   tags: z.string().optional(), // Comma-separated tags
   color: z.string().optional(),
@@ -136,7 +136,7 @@ export function EntryDialog({
         timestamp: values.timestamp || undefined,
         end_timestamp: values.end_timestamp || undefined,
         is_all_day: values.is_all_day,
-        priority: values.priority,
+        priority: values.priority as 0 | 1 | 2 | 3 | undefined,
         tags,
         color: values.color || undefined,
       };
@@ -309,7 +309,7 @@ export function EntryDialog({
                 <FormItem>
                   <FormLabel>Priority</FormLabel>
                   <Select
-                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    onValueChange={(value: string) => field.onChange(parseInt(value))}
                     value={String(field.value)}
                   >
                     <FormControl>

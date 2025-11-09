@@ -3,15 +3,14 @@
 import { useState, useMemo } from 'react';
 import type { Entry } from '@calenote/shared';
 import { useCalendar } from '@/lib/hooks/useCalendar';
+import { useCalendars } from '@/lib/hooks/useCalendars';
 import { useEntries } from '@/lib/hooks/useEntries';
+import { useCalendarStore } from '@/lib/stores/calendarStore';
 import { formatDate, startOfMonth, endOfMonth, groupEntriesByDate } from '@/lib/utils/calendar';
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarGrid } from './CalendarGrid';
 import { EntryDialog } from './EntryDialog';
 import { DayEntriesModal } from './DayEntriesModal';
-
-// TODO: Get calendar_id from auth context or selected calendar
-const TEMP_CALENDAR_ID = '00000000-0000-0000-0000-000000000001';
 
 // Unified dialog state - eliminates state explosion and race conditions
 type DialogState =
@@ -24,12 +23,21 @@ export function CalendarView() {
   const { viewingMonth, goToToday, goToPrevMonth, goToNextMonth } = useCalendar();
   const [dialog, setDialog] = useState<DialogState>({ type: 'closed' });
 
+  // Fetch calendars and auto-select default
+  useCalendars();
+  const currentCalendarId = useCalendarStore((state) => state.currentCalendarId);
+
   // Fetch entries for current month
-  const { data: entries, isLoading, error } = useEntries({
-    has_timestamp: true,
-    start_date: formatDate(startOfMonth(viewingMonth)),
-    end_date: formatDate(endOfMonth(viewingMonth)),
-  });
+  const { data: entries, isLoading, error } = useEntries(
+    currentCalendarId
+      ? {
+          calendar_id: currentCalendarId,
+          has_timestamp: true,
+          start_date: formatDate(startOfMonth(viewingMonth)),
+          end_date: formatDate(endOfMonth(viewingMonth)),
+        }
+      : undefined
+  );
 
   // Group entries by date for DayEntriesModal
   const entriesByDate = useMemo(
@@ -75,7 +83,7 @@ export function CalendarView() {
         onEntryClick={handleEntryClick}
         onShowMore={handleShowMore}
         isLoading={isLoading}
-        error={error}
+        error={error || undefined}
       />
 
       <EntryDialog
@@ -83,7 +91,7 @@ export function CalendarView() {
         onOpenChange={(open) => !open && handleDialogClose()}
         entry={dialog.type === 'edit' ? dialog.entry : undefined}
         defaultDate={dialog.type === 'create' ? dialog.date : undefined}
-        calendarId={TEMP_CALENDAR_ID}
+        calendarId={currentCalendarId || ''}
       />
 
       <DayEntriesModal
