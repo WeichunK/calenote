@@ -1363,9 +1363,17 @@ EXECUTE FUNCTION update_task_completion();
 
 ---
 
-## 🎨 EPIC 5: Frontend Core
+## 🎨 EPIC 5: Frontend Core (67% Complete - 4/6 Stories)
 
 **Goal:** Build the three main views and basic UI
+
+**Progress:**
+- ✅ Story 5.1: Project Setup (COMPLETED)
+- ✅ Story 5.2: Authentication UI (COMPLETED)
+- ✅ Story 5.3: Calendar View (COMPLETED)
+- ✅ Story 5.4: Entry List View (COMPLETED - 2025-11-09)
+- ⏳ Story 5.5: Task View (Not Started)
+- ⏳ Story 5.6: Mobile Responsive (Not Started)
 
 ### Story 5.1: Project Setup
 
@@ -1729,9 +1737,15 @@ export const config = {
 
 ---
 
-### Story 5.4: Entry View
+### Story 5.4: Entry View ✅ COMPLETED (2025-11-09)
 
-#### Task 5.4.1: Create Entry List Component
+**Implementation Summary:**
+- Commit: faf9a19 (feat: implement entry list view with filtering, sorting, and smart grouping)
+- Components: EntriesList (266 lines), FilterSortBar (179 lines), EntriesPage (176 lines)
+- Features: Client-side filtering, flexible sorting, smart date grouping, search functionality
+- Recent fixes: 8ced013 (422 errors), d2cdf0b (dependencies), 5455b7a (hydration)
+
+#### Task 5.4.1: Create Entry List Component ✅
 
 **Description:** Scrollable list of entries
 
@@ -1744,10 +1758,10 @@ export const config = {
 - Click to edit
 
 **Acceptance Criteria:**
-- [ ] Renders large lists performantly
-- [ ] Grouping works
-- [ ] Checkbox toggles completion
-- [ ] Click opens entry editor
+- [x] Renders large lists performantly (client-side with useMemo)
+- [x] Grouping works (smart date grouping: Today, This week, Past, Upcoming, Unscheduled)
+- [x] Checkbox toggles completion (implemented with mutation)
+- [x] Click opens entry editor (reuses EntryDialog component)
 
 **Dependencies:** Task 3.2.2  
 **Estimated Time:** 3 hours  
@@ -1755,7 +1769,7 @@ export const config = {
 
 ---
 
-#### Task 5.4.2: Create Entry Filter/Sort Bar
+#### Task 5.4.2: Create Entry Filter/Sort Bar ✅
 
 **Description:** UI for filtering and sorting entries
 
@@ -1766,10 +1780,10 @@ export const config = {
 - Sort dropdown (created, time, priority, name)
 
 **Acceptance Criteria:**
-- [ ] All filters work
-- [ ] Updates URL query params
-- [ ] Persists across navigation
-- [ ] Clear all filters button
+- [x] All filters work (entry type, timestamp, completion status, search)
+- [ ] Updates URL query params (not implemented - client-side state only)
+- [ ] Persists across navigation (not implemented - resets on navigation)
+- [x] Clear all filters button (reset functionality implemented)
 
 **Dependencies:** Task 5.4.1  
 **Estimated Time:** 2 hours  
@@ -1777,7 +1791,7 @@ export const config = {
 
 ---
 
-#### Task 5.4.3: Create Entry Editor Modal
+#### Task 5.4.3: Create Entry Editor Modal ✅
 
 **Description:** Form to create/edit entries
 
@@ -1791,11 +1805,11 @@ export const config = {
 - Save/Cancel buttons
 
 **Acceptance Criteria:**
-- [ ] Can create new entry
-- [ ] Can edit existing entry
-- [ ] Validation works
-- [ ] Supports markdown in content
-- [ ] Optimistic update
+- [x] Can create new entry (implemented)
+- [x] Can edit existing entry (implemented)
+- [x] Validation works (form validation with error messages)
+- [ ] Supports markdown in content (not implemented - plain text only)
+- [x] Optimistic update (React Query mutations with optimistic UI)
 
 **Dependencies:** Tasks 3.2.1, 3.2.4  
 **Estimated Time:** 3 hours  

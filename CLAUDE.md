@@ -49,8 +49,14 @@ Calendar ID: 24cb508f-9585-4205-9824-742af56e04ab
 1. Access http://localhost:3000
 2. Login with test account
 3. Navigate to Calendar View
-4. Click a date to create an entry
-5. Click an entry to edit/delete it
+   - Click a date to create an entry
+   - Click an entry to edit/delete it
+4. Navigate to Entries View
+   - Use filters (entry type, scheduled/unscheduled, completed/active)
+   - Try sorting options (created, timestamp, priority, title)
+   - Search entries by title/content
+   - Click entries to edit
+5. View smart date grouping (Today, This week, Past, Upcoming, Unscheduled)
 
 ### Local Development without Docker
 
@@ -482,6 +488,17 @@ venv
 - ✅ 168 comprehensive test cases (84/116 passing - 72%)
 - ✅ Commits: 553817e (initial), 2b5450d (dialogs), 82e9df4 (tests), 667e2bd (test improvements)
 
+**Epic 5.4: Entry List View (COMPLETED - 2025-11-09)**
+- ✅ Comprehensive filtering system (entry type, timestamp, completion status)
+- ✅ Flexible sorting (by created date, timestamp, priority, title)
+- ✅ Smart date grouping (Today, This week, Earlier this week, Upcoming, Past, Unscheduled)
+- ✅ Client-side filtering with useMemo for performance optimization
+- ✅ Search functionality across entry titles and content
+- ✅ Entry CRUD operations reusing EntryDialog from calendar view
+- ✅ Component structure: EntriesList (266 lines), FilterSortBar (179 lines), EntriesPage (176 lines)
+- ✅ Commit: faf9a19 (feature implementation)
+- ✅ Recent fixes: 8ced013 (422 errors), d2cdf0b (dependency issues), 5455b7a (ReactQueryDevtools hydration)
+
 ### Critical Fixes ✅
 
 **Task API GET Endpoint 500 Error (Fixed in Epic 4)**
@@ -533,9 +550,9 @@ venv
 - ✅ Entry Backend API (Epic 3)
 - ✅ Task Backend API (Epic 4) - **NEW! 2025-11-09**
 - ✅ Calendar View (Epic 5.3)
+- ✅ Entry List View (Epic 5.4) - **NEW! 2025-11-09**
 
 **In Progress**:
-- 🚧 Entry List View (Epic 5.4)
 - 🚧 Task View (Epic 5.5)
 
 **Pending**:
