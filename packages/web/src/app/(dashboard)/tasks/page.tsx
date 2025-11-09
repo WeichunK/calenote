@@ -1,4 +1,36 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import type { Task } from '@calenote/shared';
+import { TaskBoard } from '@/components/tasks/TaskBoard';
+import { TaskDialog } from '@/components/tasks/TaskDialog';
+
 export default function TasksPage() {
+  const router = useRouter();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  const handleCreateTask = () => {
+    setSelectedTask(null);
+    setDialogOpen(true);
+  };
+
+  const handleEditTask = (task: Task) => {
+    setSelectedTask(task);
+    setDialogOpen(true);
+  };
+
+  const handleTaskClick = (task: Task) => {
+    // Navigate to task detail view
+    router.push(`/tasks/${task.id}`);
+  };
+
+  const handleAddEntryToTask = (taskId: string) => {
+    // TODO: Open EntryDialog with task_id pre-filled
+    console.log('Add entry to task:', taskId);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -8,12 +40,18 @@ export default function TasksPage() {
         </p>
       </div>
 
-      {/* Task board will be implemented here */}
-      <div className="rounded-lg border p-8 text-center">
-        <p className="text-muted-foreground">
-          Task board coming soon...
-        </p>
-      </div>
+      <TaskBoard
+        onCreateTask={handleCreateTask}
+        onEditTask={handleEditTask}
+        onTaskClick={handleTaskClick}
+        onAddEntryToTask={handleAddEntryToTask}
+      />
+
+      <TaskDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        task={selectedTask}
+      />
     </div>
   );
 }

@@ -77,7 +77,7 @@ export function FilterSortBar({ filters, onFiltersChange }: FilterSortBarProps) 
         {/* Entry Type Filter */}
         <Select
           value={filters.entryType}
-          onValueChange={(value) =>
+          onValueChange={(value: string) =>
             updateFilter('entryType', value as FilterSortState['entryType'])
           }
         >
@@ -95,7 +95,7 @@ export function FilterSortBar({ filters, onFiltersChange }: FilterSortBarProps) 
         {/* Scheduled Filter */}
         <Select
           value={filters.hasTimestamp}
-          onValueChange={(value) =>
+          onValueChange={(value: string) =>
             updateFilter('hasTimestamp', value as FilterSortState['hasTimestamp'])
           }
         >
@@ -112,7 +112,7 @@ export function FilterSortBar({ filters, onFiltersChange }: FilterSortBarProps) 
         {/* Completion Filter */}
         <Select
           value={filters.isCompleted}
-          onValueChange={(value) =>
+          onValueChange={(value: string) =>
             updateFilter('isCompleted', value as FilterSortState['isCompleted'])
           }
         >
@@ -129,7 +129,7 @@ export function FilterSortBar({ filters, onFiltersChange }: FilterSortBarProps) 
         {/* Sort By */}
         <Select
           value={filters.sortBy}
-          onValueChange={(value) =>
+          onValueChange={(value: string) =>
             updateFilter('sortBy', value as FilterSortState['sortBy'])
           }
         >
@@ -147,7 +147,7 @@ export function FilterSortBar({ filters, onFiltersChange }: FilterSortBarProps) 
         {/* Sort Order */}
         <Select
           value={filters.sortOrder}
-          onValueChange={(value) =>
+          onValueChange={(value: string) =>
             updateFilter('sortOrder', value as FilterSortState['sortOrder'])
           }
         >
