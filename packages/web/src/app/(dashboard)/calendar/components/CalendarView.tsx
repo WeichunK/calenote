@@ -1,14 +1,28 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import type { Entry } from '@calenote/shared';
 import { useCalendar } from '@/lib/hooks/useCalendar';
 import { useEntries } from '@/lib/hooks/useEntries';
-import { formatDate, startOfMonth, endOfMonth } from '@/lib/utils/calendar';
+import { formatDate, startOfMonth, endOfMonth, groupEntriesByDate } from '@/lib/utils/calendar';
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarGrid } from './CalendarGrid';
+import { EntryDialog } from './EntryDialog';
+import { DayEntriesModal } from './DayEntriesModal';
+
+// TODO: Get calendar_id from auth context or selected calendar
+const TEMP_CALENDAR_ID = '00000000-0000-0000-0000-000000000001';
+
+// Unified dialog state - eliminates state explosion and race conditions
+type DialogState =
+  | { type: 'closed' }
+  | { type: 'create'; date: Date }
+  | { type: 'edit'; entry: Entry }
+  | { type: 'day-list'; date: Date; entries: Entry[] };
 
 export function CalendarView() {
   const { viewingMonth, goToToday, goToPrevMonth, goToNextMonth } = useCalendar();
+  const [dialog, setDialog] = useState<DialogState>({ type: 'closed' });
 
   // Fetch entries for current month
   const { data: entries, isLoading, error } = useEntries({
@@ -17,19 +31,33 @@ export function CalendarView() {
     end_date: formatDate(endOfMonth(viewingMonth)),
   });
 
+  // Group entries by date for DayEntriesModal
+  const entriesByDate = useMemo(
+    () => groupEntriesByDate(entries || []),
+    [entries]
+  );
+
   const handleDateClick = (date: Date) => {
-    // TODO: Open EntryDialog for creating new entry
-    console.log('Create entry for date:', date);
+    setDialog({ type: 'create', date });
   };
 
   const handleEntryClick = (entry: Entry) => {
-    // TODO: Open EntryDialog for editing entry
-    console.log('Edit entry:', entry);
+    setDialog({ type: 'edit', entry });
   };
 
   const handleShowMore = (date: Date) => {
-    // TODO: Open DayEntriesModal
-    console.log('Show all entries for date:', date);
+    const dateEntries = entriesByDate[formatDate(date)] || [];
+    setDialog({ type: 'day-list', date, entries: dateEntries });
+  };
+
+  const handleDialogClose = () => {
+    setDialog({ type: 'closed' });
+  };
+
+  const handleCreateFromDayList = () => {
+    if (dialog.type === 'day-list') {
+      setDialog({ type: 'create', date: dialog.date });
+    }
   };
 
   return (
@@ -47,10 +75,25 @@ export function CalendarView() {
         onEntryClick={handleEntryClick}
         onShowMore={handleShowMore}
         isLoading={isLoading}
+        error={error}
       />
 
-      {/* TODO: Add EntryDialog */}
-      {/* TODO: Add DayEntriesModal */}
+      <EntryDialog
+        open={dialog.type === 'create' || dialog.type === 'edit'}
+        onOpenChange={(open) => !open && handleDialogClose()}
+        entry={dialog.type === 'edit' ? dialog.entry : undefined}
+        defaultDate={dialog.type === 'create' ? dialog.date : undefined}
+        calendarId={TEMP_CALENDAR_ID}
+      />
+
+      <DayEntriesModal
+        open={dialog.type === 'day-list'}
+        onOpenChange={(open) => !open && handleDialogClose()}
+        date={dialog.type === 'day-list' ? dialog.date : new Date()}
+        entries={dialog.type === 'day-list' ? dialog.entries : []}
+        onEntryClick={handleEntryClick}
+        onCreateEntry={handleCreateFromDayList}
+      />
     </div>
   );
 }
