@@ -24,9 +24,16 @@ export class CalenoteWebSocketClient implements WebSocketClient {
   }
 
   connect(): void {
-    if (this.ws?.readyState === WebSocket.OPEN) {
-      console.log('[WS] Already connected');
-      return;
+    // Check if already connected or connecting
+    if (this.ws) {
+      if (this.ws.readyState === WebSocket.OPEN) {
+        console.log('[WS] Already connected');
+        return;
+      }
+      if (this.ws.readyState === WebSocket.CONNECTING) {
+        console.log('[WS] Connection already in progress');
+        return;
+      }
     }
 
     this.isIntentionalDisconnect = false;

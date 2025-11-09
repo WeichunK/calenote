@@ -79,7 +79,8 @@ export function useWebSocket({ calendarId, enabled = true }: UseWebSocketOptions
       clientRef.current?.disconnect();
       clientRef.current = null;
     };
-  }, [calendarId, enabled, tokens, queryClient, store]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calendarId, enabled]); // Removed 'tokens' - only reconnect when calendar/enabled changes
 
   return {
     status: store.status,

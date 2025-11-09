@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { queryClient } from '@/lib/queryClient';
 import { setupApiClient } from '@/lib/api-setup';
 import { ConnectionIndicator } from '@/components/connection/ConnectionIndicator';
+import { WebSocketProvider } from '@/lib/websocket/WebSocketProvider';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   // Track client-side mount to avoid hydration mismatch with DevTools
@@ -19,14 +20,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
-      {/* Only render DevTools and ConnectionIndicator after client-side hydration */}
-      {isMounted && (
-        <>
-          <ReactQueryDevtools initialIsOpen={false} />
-          <ConnectionIndicator />
-        </>
-      )}
+      <WebSocketProvider>
+        {children}
+        {/* Only render DevTools and ConnectionIndicator after client-side hydration */}
+        {isMounted && (
+          <>
+            <ReactQueryDevtools initialIsOpen={false} />
+            <ConnectionIndicator />
+          </>
+        )}
+      </WebSocketProvider>
     </QueryClientProvider>
   );
 }
