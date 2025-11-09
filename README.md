@@ -30,8 +30,28 @@ docker-compose exec backend alembic upgrade head
 
 服務端口：
 - Backend API: http://localhost:8000
+- Frontend Web: http://localhost:3000
 - PgAdmin: http://localhost:5050 (admin@calendar.com / admin)
 - Flower (Celery監控): http://localhost:5555
+
+### 測試帳號（快速體驗）
+
+使用以下測試帳號可立即登入系統：
+
+```
+Email: demo@example.com
+Password: demo123456
+Username: demouser
+Default Calendar: My Calendar
+Calendar ID: 24cb508f-9585-4205-9824-742af56e04ab
+```
+
+**快速測試流程**:
+1. 訪問 http://localhost:3000
+2. 使用測試帳號登入
+3. 進入 Calendar View 查看日曆
+4. 點擊日期創建新記事
+5. 點擊記事進行編輯或刪除
 
 ### 方法 2: 本地開發
 
@@ -290,6 +310,12 @@ sudo systemctl start calendar-backend
 
 ## 🐛 常見問題
 
+### Q: 登入時遇到 500 錯誤？
+A: 這個問題已在 v0.2.0 解決：
+1. 確保使用 bcrypt 3.2.2（已在 requirements.txt 固定版本）
+2. 如果仍有問題，重新安裝依賴：`pip install -r requirements.txt --force-reinstall`
+3. bcrypt 4.x 與 passlib 1.7.4 不兼容，必須使用 3.2.2
+
 ### Q: WebSocket 連接失敗？
 A: 確認：
 1. Token 是否有效
@@ -306,6 +332,12 @@ A: 檢查：
 A: 確認：
 1. 任務和記事是否屬於同一個日曆
 2. 用戶是否有編輯權限
+
+### Q: Frontend 無法連接到 Backend？
+A: 檢查：
+1. Backend 是否在 http://localhost:8000 運行
+2. CORS 設定是否正確（已在 main.py 配置）
+3. 檢查 Frontend 的 NEXT_PUBLIC_API_URL 環境變數
 
 ## 📚 更多資源
 

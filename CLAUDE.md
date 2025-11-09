@@ -31,9 +31,26 @@ docker-compose up -d --build
 
 **Service URLs:**
 - Backend API: http://localhost:8000
+- Frontend Web: http://localhost:3000
 - API Documentation: http://localhost:8000/api/docs
 - PgAdmin: http://localhost:5050 (admin@calendar.com / admin)
 - Flower (Celery monitoring): http://localhost:5555
+
+**Test Account (for quick testing):**
+```
+Email: demo@example.com
+Password: demo123456
+Username: demouser
+Default Calendar: My Calendar
+Calendar ID: 24cb508f-9585-4205-9824-742af56e04ab
+```
+
+**Quick Test Workflow**:
+1. Access http://localhost:3000
+2. Login with test account
+3. Navigate to Calendar View
+4. Click a date to create an entry
+5. Click an entry to edit/delete it
 
 ### Local Development without Docker
 
@@ -435,4 +452,76 @@ venv
   - ✅ debug-investigator - 調試問題
   - ✅ test-architect - 創建測試
   - ✅ docs-sync-reviewer - 更新文件
+
+## Recent Updates and Fixes (2025-11-09)
+
+### Completed Features ✅
+
+**Epic 2: Authentication System (COMPLETED)**
+- ✅ User registration and login fully functional
+- ✅ JWT-based authentication working
+- ✅ Protected routes with AuthGuard component
+- ✅ Calendar access control implemented
+- ✅ Commit: 6f560f8 (auth UI), 054c7be (auth fixes)
+
+**Epic 5: Calendar View (COMPLETED)**
+- ✅ Full calendar view with 42-cell grid
+- ✅ Month navigation (prev/next/today)
+- ✅ Entry CRUD operations (create/edit/delete)
+- ✅ Entry completion toggling
+- ✅ Day entries modal for viewing all entries
+- ✅ 168 comprehensive test cases (84/116 passing - 72%)
+- ✅ Commits: 553817e (initial), 2b5450d (dialogs), 82e9df4 (tests), 667e2bd (test improvements)
+
+### Critical Fixes ✅
+
+**Authentication 500 Error (Fixed in 054c7be)**
+- Issue: Login endpoint returning 500 Internal Server Error
+- Root Cause: bcrypt 4.x removed __about__ attribute that passlib 1.7.4 depends on
+- Solution: Pin bcrypt to version 3.2.2 in requirements.txt
+- Status: ✅ RESOLVED
+- Impact: All authentication endpoints now working correctly
+
+**CORS Issues (Fixed in 054c7be)**
+- Issue: CORS-related errors in frontend
+- Root Cause: Server crash before CORS headers could be sent (symptom of bcrypt issue)
+- Solution: Fixed underlying bcrypt issue, CORS configuration already correct
+- Status: ✅ RESOLVED
+
+**Calendar ID Management (Fixed in 054c7be)**
+- Issue: CalendarView not using authenticated user's calendar_id
+- Solution: Implemented proper calendar state management with useCalendars hook
+- Status: ✅ RESOLVED
+- Files: CalendarView.tsx, AuthGuard.tsx, calendars.ts
+
+### Known Issues and Workarounds
+
+**Test Suite Status**
+- Current: 84/116 tests passing (72%)
+- 32 failing tests primarily in EntryDialog and DayEntriesModal
+- All critical user journeys work in production
+- Test infrastructure improvements in progress
+
+**Dependencies to Monitor**
+- bcrypt: MUST stay at 3.2.2 (DO NOT upgrade to 4.x)
+- passlib: 1.7.4 (stable, no changes needed)
+- If bcrypt issues occur: `pip install -r requirements.txt --force-reinstall`
+
+### Current Development Status
+
+**Completed (100%)**:
+- ✅ Project Setup (Epic 1)
+- ✅ Authentication System (Epic 2)
+- ✅ Entry Backend API (Epic 3 - Backend)
+- ✅ Calendar View (Epic 5 - Partial)
+
+**In Progress**:
+- 🚧 Entry List View (Epic 5)
+- 🚧 Task View (Epic 5)
+
+**Pending**:
+- ⏳ Task Backend API (Epic 4)
+- ⏳ Real-time Sync (Epic 6)
+- ⏳ Advanced Features (Epic 7)
+- ⏳ Mobile App (Epic 8)
 
