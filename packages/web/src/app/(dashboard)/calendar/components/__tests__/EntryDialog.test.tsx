@@ -8,11 +8,6 @@ const mockMutateAsync = jest.fn();
 const mockMutate = jest.fn();
 const mockReset = jest.fn();
 
-// Mock hooks that return configurable mutation objects
-const mockUseCreateEntry = jest.fn();
-const mockUseUpdateEntry = jest.fn();
-const mockUseDeleteEntry = jest.fn();
-
 // Factory function to create mock mutation objects
 const createMockMutation = (isPending = false) => ({
   mutateAsync: mockMutateAsync,
@@ -24,10 +19,15 @@ const createMockMutation = (isPending = false) => ({
   reset: mockReset,
 });
 
+// Create mock hooks with default values
+const mockUseCreateEntry = jest.fn(() => createMockMutation());
+const mockUseUpdateEntry = jest.fn(() => createMockMutation());
+const mockUseDeleteEntry = jest.fn(() => createMockMutation());
+
 jest.mock('@/lib/hooks/useEntries', () => ({
-  useCreateEntry: jest.fn((...args) => mockUseCreateEntry(...args)),
-  useUpdateEntry: jest.fn((...args) => mockUseUpdateEntry(...args)),
-  useDeleteEntry: jest.fn((...args) => mockUseDeleteEntry(...args)),
+  useCreateEntry: (...args: any[]) => mockUseCreateEntry(...args),
+  useUpdateEntry: (...args: any[]) => mockUseUpdateEntry(...args),
+  useDeleteEntry: (...args: any[]) => mockUseDeleteEntry(...args),
 }));
 
 describe('EntryDialog', () => {
