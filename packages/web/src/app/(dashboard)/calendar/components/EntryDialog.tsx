@@ -37,7 +37,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 
 const entryFormSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200),
+  title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
   content: z.string().optional(),
   entry_type: z.enum(['event', 'note', 'reminder']),
   timestamp: z.string().optional(),

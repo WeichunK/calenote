@@ -1,16 +1,7 @@
-import { describe, test, expect, jest } from '@jest/globals';
+import { describe, test, expect, jest, afterEach } from '@jest/globals';
 import { screen } from '@testing-library/react';
 import { CalendarGrid } from '../CalendarGrid';
 import { renderWithProviders, createMockEntries } from './test-utils';
-
-// Mock CalendarCell to simplify testing
-jest.mock('../CalendarCell', () => ({
-  CalendarCell: ({ date, entries }: any) => (
-    <div data-testid="calendar-cell" data-date={date.toISOString()}>
-      Cell: {date.getDate()} ({entries.length} entries)
-    </div>
-  ),
-}));
 
 describe('CalendarGrid', () => {
   const mockOnDateClick = jest.fn();
@@ -18,7 +9,9 @@ describe('CalendarGrid', () => {
   const mockOnShowMore = jest.fn();
 
   afterEach(() => {
-    jest.clearAllMocks();
+    mockOnDateClick.mockClear();
+    mockOnEntryClick.mockClear();
+    mockOnShowMore.mockClear();
   });
 
   describe('Grid Structure', () => {
@@ -173,16 +166,24 @@ describe('CalendarGrid', () => {
       const cells = screen.getAllByTestId('calendar-cell');
 
       // Find the cell for March 15 (should have 2 entries)
-      const march15Cell = cells.find(cell =>
-        cell.textContent?.includes('Cell: 15') && cell.textContent?.includes('(2 entries)')
-      );
+      const march15Cell = cells.find(cell => {
+        const dateStr = cell.getAttribute('data-date');
+        if (!dateStr) return false;
+        const date = new Date(dateStr);
+        return date.getDate() === 15 && date.getMonth() === 2;
+      });
       expect(march15Cell).toBeInTheDocument();
+      expect(march15Cell?.querySelectorAll('[data-testid="entry-badge"]')).toHaveLength(2);
 
       // Find the cell for March 16 (should have 3 entries)
-      const march16Cell = cells.find(cell =>
-        cell.textContent?.includes('Cell: 16') && cell.textContent?.includes('(3 entries)')
-      );
+      const march16Cell = cells.find(cell => {
+        const dateStr = cell.getAttribute('data-date');
+        if (!dateStr) return false;
+        const date = new Date(dateStr);
+        return date.getDate() === 16 && date.getMonth() === 2;
+      });
       expect(march16Cell).toBeInTheDocument();
+      expect(march16Cell?.querySelectorAll('[data-testid="entry-badge"]')).toHaveLength(3);
     });
 
     test('handles entries without timestamps', () => {

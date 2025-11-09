@@ -14,6 +14,7 @@ export function EntryBadge({ entry, onClick, compact = false }: EntryBadgeProps)
 
   return (
     <button
+      data-testid="entry-badge"
       onClick={(e) => {
         e.stopPropagation();
         onClick(entry);

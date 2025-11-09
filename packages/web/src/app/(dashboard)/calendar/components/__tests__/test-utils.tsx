@@ -39,10 +39,14 @@ export function renderWithProviders(
   };
 }
 
+// Counter for unique entry IDs
+let entryIdCounter = 0;
+
 // Mock Entry factory
 export function createMockEntry(overrides: Partial<Entry> = {}): Entry {
+  entryIdCounter++;
   return {
-    id: 'entry-1',
+    id: `entry-${entryIdCounter}`,
     calendar_id: '00000000-0000-0000-0000-000000000001',
     title: 'Test Entry',
     content: 'Test content',

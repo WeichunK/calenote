@@ -107,15 +107,12 @@ export function DayEntriesModal({
                 : null;
 
               return (
-                <button
+                <div
                   key={entry.id}
-                  onClick={() => {
-                    onOpenChange(false);
-                    onEntryClick(entry);
-                  }}
+                  data-testid="modal-entry"
                   className={cn(
                     'w-full text-left p-3 rounded-lg border-l-4 transition-colors',
-                    'hover:bg-accent hover:shadow-sm',
+                    'hover:bg-accent hover:shadow-sm cursor-pointer',
                     getPriorityColor(entry.priority),
                     entry.is_completed && 'opacity-60'
                   )}
@@ -124,12 +121,18 @@ export function DayEntriesModal({
                       ? `${entry.color}15`
                       : undefined,
                   }}
+                  onClick={() => {
+                    onOpenChange(false);
+                    onEntryClick(entry);
+                  }}
                 >
                   <div className="flex items-start gap-3">
                     {/* Checkbox */}
                     <button
+                      data-testid="entry-checkbox"
                       onClick={(e) => handleToggleComplete(entry, e)}
                       className="mt-1 flex-shrink-0"
+                      type="button"
                     >
                       <div
                         className={cn(
@@ -197,7 +200,7 @@ export function DayEntriesModal({
                       )}
                     </div>
                   </div>
-                </button>
+                </div>
               );
             })
           )}

@@ -28,6 +28,8 @@ export function CalendarCell({
 
   return (
     <div
+      data-testid="calendar-cell"
+      data-date={date.toISOString()}
       className={cn(
         'border-r border-b p-1 sm:p-2 h-24 sm:h-32',
         'cursor-pointer hover:bg-accent/50 transition-colors',
