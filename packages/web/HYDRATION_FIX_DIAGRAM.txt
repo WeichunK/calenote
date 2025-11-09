@@ -1,0 +1,131 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    REACT HYDRATION ERROR - BEFORE FIX                         ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+SERVER (SSR)                                    CLIENT (CSR - First Render)
+┌─────────────────────────────────┐            ┌─────────────────────────────────┐
+│ AuthGuard renders               │            │ AuthGuard renders               │
+│                                 │            │                                 │
+│ localStorage: N/A               │            │ localStorage: {user, tokens}    │
+│ isAuthenticated(): false        │            │ isAuthenticated(): true         │
+│                                 │            │                                 │
+│ if (!isAuthenticated)           │            │ if (!isAuthenticated)           │
+│   return null; ◄────────┐       │            │   return null;                  │
+│                         │       │            │                                 │
+│ Server HTML:            │       │            │ return <>{children}</>;         │
+│ (empty/nothing)         │       │            │                                 │
+└─────────────────────────┼───────┘            │ Client HTML:                    │
+                          │                    │ <div className="flex h-screen">│
+                          │                    │   <Sidebar />                   │
+                          │                    │   <Header />                    │
+                          │                    │   {children}                    │
+                          │                    │ </div>                          │
+                          │                    └─────────────────────────────────┘
+                          │                                    │
+                          │                                    │
+                          └────────────────────────────────────┘
+                                             │
+                                   ╔═════════▼═════════╗
+                                   ║  MISMATCH ERROR!  ║
+                                   ║                   ║
+                                   ║  Server: null     ║
+                                   ║  Client: <div>    ║
+                                   ╚═══════════════════╝
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                     REACT HYDRATION ERROR - AFTER FIX                         ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+SERVER (SSR)                                    CLIENT (CSR - First Render)
+┌─────────────────────────────────┐            ┌─────────────────────────────────┐
+│ AuthGuard renders               │            │ AuthGuard renders               │
+│                                 │            │                                 │
+│ isHydrated: false ◄─────────────┼────────────┼──► isHydrated: false           │
+│                                 │            │                                 │
+│ if (!isHydrated)                │            │ if (!isHydrated)                │
+│   return <LoadingSkeleton/>     │            │   return <LoadingSkeleton/>     │
+│                                 │            │                                 │
+│ Server HTML:                    │   MATCH!   │ Client HTML:                    │
+│ <div className="flex h-screen"> │◄──────────►│ <div className="flex h-screen">│
+│   <div className="flex center"> │            │   <div className="flex center"> │
+│     <LoadingSpinner />          │            │     <LoadingSpinner />          │
+│   </div>                        │            │   </div>                        │
+│ </div>                          │            │ </div>                          │
+└─────────────────────────────────┘            └─────────────────────────────────┘
+                                                             │
+                                                   ╔═════════▼═════════╗
+                                                   ║ ✅ HYDRATION OK!  ║
+                                                   ║                   ║
+                                                   ║ Same HTML         ║
+                                                   ║ structure         ║
+                                                   ╚═══════════════════╝
+                                                             │
+                                                             ▼
+CLIENT (After useEffect)                         
+┌─────────────────────────────────┐            
+│ useEffect runs:                 │            
+│   setIsHydrated(true)           │            
+│                                 │            
+│ Component re-renders:           │            
+│ isHydrated: true                │            
+│ isAuthenticated: true           │            
+│                                 │            
+│ return <>{children}</>          │            
+│                                 │            
+│ Final HTML:                     │            
+│ <div className="flex h-screen"> │            
+│   <Sidebar />                   │            
+│   <Header />                    │            
+│   {children}                    │            
+│ </div>                          │            
+└─────────────────────────────────┘            
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                              KEY INSIGHTS                                     ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+1. PROBLEM: Zustand persist reads from localStorage (client-only)
+   └─► Server: no localStorage → unauthenticated → renders null
+   └─► Client: has localStorage → authenticated → renders <div>
+   └─► Result: HTML mismatch → HYDRATION ERROR
+
+2. SOLUTION: Track hydration state with useState + useEffect
+   └─► Server: isHydrated=false → renders loading skeleton
+   └─► Client (initial): isHydrated=false → renders same loading skeleton
+   └─► Client (after mount): isHydrated=true → renders actual content
+   └─► Result: Same HTML → HYDRATION SUCCESS ✅
+
+3. PATTERN: useEffect-based Two-Phase Rendering
+   
+   Phase 1 (SSR + Initial CSR):
+   ┌──────────────────────────────────────┐
+   │ const [mounted, setMounted] = false; │
+   │ return <LoadingSkeleton />;          │ ◄── Same on server & client
+   └──────────────────────────────────────┘
+
+   Phase 2 (After Hydration):
+   ┌──────────────────────────────────────┐
+   │ useEffect(() => setMounted(true))    │
+   │ if (mounted) return <ActualContent/> │ ◄── Client-only, after hydration
+   └──────────────────────────────────────┘
+
+4. WHY IT WORKS:
+   └─► useState initial value is same on server and client (false)
+   └─► useEffect only runs on client, AFTER hydration completes
+   └─► Loading skeleton has same HTML structure as final layout
+   └─► No conditional rendering based on client-only data (localStorage)
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                          FILES CHANGED                                        ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+1. src/components/auth/AuthGuard.tsx
+   ├─ Added: isHydrated state
+   ├─ Added: Loading skeleton for SSR
+   ├─ Changed: Conditional rendering logic
+   └─ Result: Consistent HTML structure
+
+2. src/lib/stores/uiStore.ts
+   ├─ Changed: new Date() → new Date(new Date().toDateString())
+   └─ Result: Consistent date initialization
+
