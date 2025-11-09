@@ -68,19 +68,19 @@ export function TaskBoard({
   return (
     <div className="space-y-6">
       {/* Header with Filters */}
-      <div className="flex items-center justify-between gap-4">
-        <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-          <TabsList>
-            <TabsTrigger value="all">All Tasks</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
-            <TabsTrigger value="archived">Archived</TabsTrigger>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)} className="w-full sm:w-auto">
+          <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:flex">
+            <TabsTrigger value="all" className="text-xs sm:text-sm">All</TabsTrigger>
+            <TabsTrigger value="active" className="text-xs sm:text-sm">Active</TabsTrigger>
+            <TabsTrigger value="completed" className="text-xs sm:text-sm">Done</TabsTrigger>
+            <TabsTrigger value="archived" className="text-xs sm:text-sm">Archived</TabsTrigger>
           </TabsList>
         </Tabs>
 
-        <Button onClick={onCreateTask}>
+        <Button onClick={onCreateTask} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
-          New Task
+          <span className="sm:inline">New Task</span>
         </Button>
       </div>
 

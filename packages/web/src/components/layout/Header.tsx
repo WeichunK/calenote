@@ -43,9 +43,9 @@ export function Header() {
           <span className="sr-only">Toggle menu</span>
         </Button>
 
-        {/* Search */}
-        <div className="flex-1 max-w-md">
-          <div className="relative">
+        {/* Search - Desktop */}
+        <div className="hidden md:flex flex-1 max-w-md">
+          <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search entries, tasks..."
@@ -53,6 +53,15 @@ export function Header() {
             />
           </div>
         </div>
+
+        {/* Search - Mobile (Icon only) */}
+        <Button variant="ghost" size="icon" className="md:hidden">
+          <Search className="h-5 w-5" />
+          <span className="sr-only">Search</span>
+        </Button>
+
+        {/* Spacer for mobile */}
+        <div className="flex-1 md:hidden" />
 
         {/* Right actions */}
         <div className="flex items-center gap-2">

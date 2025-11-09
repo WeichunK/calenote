@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon, Loader2 } from 'lucide-react';
 import type { Task, CreateTaskDTO, UpdateTaskDTO } from '@calenote/shared';
+import { useIsMobile } from '@/lib/hooks/useMediaQuery';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +13,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -157,10 +166,166 @@ export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
   };
 
   const isLoading = createTask.isPending || updateTask.isPending;
+  const isMobile = useIsMobile();
 
   // Parse due_date to Date object for Calendar component
   const dueDate = currentData.due_date ? new Date(currentData.due_date) : undefined;
 
+  // Mobile: Full-screen Sheet
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={handleCancel}>
+        <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>{isEdit ? 'Edit Task' : 'Create New Task'}</SheetTitle>
+            <SheetDescription>
+              {isEdit
+                ? 'Update the task details below'
+                : 'Create a new task to organize your entries'}
+            </SheetDescription>
+          </SheetHeader>
+
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4 py-4 mt-4">
+            {/* Title */}
+            <div className="space-y-2">
+              <Label htmlFor="title">
+                Title <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="title"
+                placeholder="Enter task title"
+                value={currentData.title}
+                onChange={(e) => updateField('title', e.target.value)}
+                disabled={isLoading}
+                required
+              />
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Add a description (optional)"
+                value={currentData.description || ''}
+                onChange={(e) => updateField('description', e.target.value)}
+                disabled={isLoading}
+                rows={3}
+              />
+            </div>
+
+            {/* Status (only show when editing) */}
+            {isEdit && (
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={currentData.status}
+                  onValueChange={(v: any) => updateField('status', v)}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger id="status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Due Date */}
+            <div className="space-y-2">
+              <Label>Due Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !dueDate && 'text-muted-foreground'
+                    )}
+                    disabled={isLoading}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dueDate ? format(dueDate, 'PPP') : 'Pick a due date (optional)'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dueDate}
+                    onSelect={(date) => updateField('due_date', date?.toISOString())}
+                    initialFocus
+                  />
+                  {dueDate && (
+                    <div className="p-2 border-t">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => updateField('due_date', undefined)}
+                      >
+                        Clear Date
+                      </Button>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Icon and Color */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="icon">Icon (Emoji)</Label>
+                <Input
+                  id="icon"
+                  placeholder="📝"
+                  value={currentData.icon || ''}
+                  onChange={(e) => updateField('icon', e.target.value)}
+                  disabled={isLoading}
+                  maxLength={2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="color">Color</Label>
+                <Input
+                  id="color"
+                  type="color"
+                  value={currentData.color || '#3b82f6'}
+                  onChange={(e) => updateField('color', e.target.value)}
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+          </div>
+
+            <SheetFooter className="mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isLoading}
+                className="w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isEdit ? 'Update Task' : 'Create Task'}
+              </Button>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // Desktop: Dialog
   return (
     <Dialog open={open} onOpenChange={handleCancel}>
       <DialogContent className="sm:max-w-[500px]">

@@ -53,7 +53,16 @@ export function CalendarCell({
       {/* Entries */}
       <div className="flex-1 overflow-hidden space-y-0.5">
         {displayEntries.map((entry) => (
-          <EntryBadge key={entry.id} entry={entry} onClick={onEntryClick} />
+          <div key={entry.id}>
+            {/* Desktop */}
+            <div className="hidden sm:block">
+              <EntryBadge entry={entry} onClick={onEntryClick} />
+            </div>
+            {/* Mobile - compact mode */}
+            <div className="sm:hidden">
+              <EntryBadge entry={entry} onClick={onEntryClick} compact />
+            </div>
+          </div>
         ))}
 
         {remaining > 0 && onShowMore && (

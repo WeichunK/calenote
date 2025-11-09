@@ -20,12 +20,21 @@ const navItems: NavItem[] = [
   { href: '/tasks', icon: CheckSquare, label: 'Tasks' },
 ];
 
-function NavLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
+function NavLink({
+  item,
+  isActive,
+  onClick
+}: {
+  item: NavItem;
+  isActive: boolean;
+  onClick?: () => void;
+}) {
   const Icon = item.icon;
 
   return (
     <Link
       href={item.href}
+      onClick={onClick}
       className={cn(
         'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
         isActive
@@ -83,6 +92,7 @@ export function Sidebar() {
               key={item.href}
               item={item}
               isActive={pathname.startsWith(item.href)}
+              onClick={closeMobileSidebar}
             />
           ))}
         </nav>
