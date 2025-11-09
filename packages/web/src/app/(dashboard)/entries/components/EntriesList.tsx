@@ -112,7 +112,10 @@ export function EntriesList({ entries, onEntryClick, groupBy = 'none' }: Entries
   const handleToggleComplete = async (entry: Entry, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await toggleComplete.mutateAsync(entry.id);
+      await toggleComplete.mutateAsync({
+        id: entry.id,
+        isCompleted: !entry.is_completed,
+      });
     } catch (error) {
       console.error('Failed to toggle entry completion:', error);
     }

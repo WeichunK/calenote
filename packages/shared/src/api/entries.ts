@@ -17,6 +17,10 @@ export interface GetEntriesParams {
 export const entriesApi = {
   // 獲取所有 entries
   getEntries: (params?: GetEntriesParams) => {
+    // Ensure params is undefined if calendar_id is missing (required by backend)
+    if (!params || !params.calendar_id) {
+      throw new Error('calendar_id is required to fetch entries');
+    }
     return apiClient.get<Entry[]>('/entries', params);
   },
 
@@ -41,8 +45,10 @@ export const entriesApi = {
   },
 
   // 切換完成狀態
-  toggleComplete: (id: string) => {
-    return apiClient.post<Entry>(`/entries/${id}/complete`);
+  toggleComplete: (id: string, isCompleted: boolean) => {
+    return apiClient.post<Entry>(`/entries/${id}/complete`, {
+      is_completed: isCompleted,
+    });
   },
 
   // 添加到 task
