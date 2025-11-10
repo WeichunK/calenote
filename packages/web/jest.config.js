@@ -23,6 +23,11 @@ const customJestConfig = {
   testMatch: [
     '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
     '<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}',
+    // Exclude utility and mock files from being treated as tests
+    '!**/__tests__/**/mocks.{js,jsx,ts,tsx}',
+    '!**/__tests__/**/test-utils.{js,jsx,ts,tsx}',
+    '!**/__tests__/**/*.mock.{js,jsx,ts,tsx}',
+    '!**/__tests__/**/*.util.{js,jsx,ts,tsx}',
   ],
 };
 
