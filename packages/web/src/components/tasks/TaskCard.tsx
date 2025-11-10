@@ -53,7 +53,13 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, onDelete, onAddEn
       whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
       className="origin-center"
     >
-      <Card className="hover:shadow-md transition-shadow">
+      <Card
+        className="hover:shadow-md transition-shadow"
+        style={{
+          backgroundColor: task.color ? `${task.color}08` : undefined,
+          borderLeft: task.color ? `4px solid ${task.color}` : undefined,
+        }}
+      >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2 flex-1 min-w-0">

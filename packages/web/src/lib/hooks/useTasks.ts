@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { tasksApi, type GetTasksParams } from '@calenote/shared';
+import { tasksApi, type GetTasksParams, type TasksResponse } from '@calenote/shared';
 import type { Task, CreateTaskDTO, UpdateTaskDTO, ReorderEntriesDTO } from '@calenote/shared';
 
 // Query keys
@@ -38,53 +38,82 @@ export function useCreateTask() {
     mutationFn: (data: CreateTaskDTO) => tasksApi.createTask(data),
     // Optimistic update: immediately add task to cache
     onMutate: async (newTask) => {
+      console.log('[useTasks] onMutate - Creating task:', newTask);
+
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: taskKeys.lists() });
 
       // Snapshot previous values
       const previousTasks = queryClient.getQueriesData({ queryKey: taskKeys.lists() });
+      console.log('[useTasks] Previous cache entries:', previousTasks.length);
+
+      // Create temporary task with optimistic ID
+      const optimisticTask: Task = {
+        id: `temp-${Date.now()}`,
+        calendar_id: newTask.calendar_id,
+        title: newTask.title,
+        description: newTask.description || '',
+        status: 'active',
+        due_date: newTask.due_date,
+        total_entries: 0,
+        completed_entries: 0,
+        created_by: 'current-user',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        last_modified_by: undefined,
+      };
 
       // Optimistically update all matching queries
-      queryClient.setQueriesData<Task[]>(
+      queryClient.setQueriesData<any>(
         { queryKey: taskKeys.lists() },
-        (old) => {
-          // Create temporary task with optimistic ID
-          const optimisticTask: Task = {
-            id: `temp-${Date.now()}`,
-            calendar_id: newTask.calendar_id,
-            title: newTask.title,
-            description: newTask.description || '',
-            status: 'active',
-            due_date: newTask.due_date,
-            total_entries: 0,
-            completed_entries: 0,
-            created_by: 'current-user',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            last_modified_by: undefined,
-          };
+        (old: any) => {
+          console.log('[useTasks] setQueriesData updater called, old:', old);
 
-          // If old is undefined or not an array, start with new task
-          if (!old || !Array.isArray(old)) {
-            return [optimisticTask];
+          // Handle paginated response: {tasks: Task[], total: number}
+          if (old && typeof old === 'object' && 'tasks' in old && Array.isArray(old.tasks)) {
+            console.log('[useTasks] Paginated response detected, prepending to tasks array');
+            return {
+              tasks: [optimisticTask, ...old.tasks],
+              total: old.total + 1,
+            };
           }
 
-          return [optimisticTask, ...old];
+          // Handle array response: Task[]
+          if (old && Array.isArray(old)) {
+            console.log('[useTasks] Array response detected, prepending');
+            return [optimisticTask, ...old];
+          }
+
+          // No existing data - check if backend uses pagination
+          console.log('[useTasks] No existing data, creating new paginated response');
+          return {
+            tasks: [optimisticTask],
+            total: 1,
+          };
         }
       );
+
+      // Verify the update
+      const afterUpdate = queryClient.getQueriesData({ queryKey: taskKeys.lists() });
+      console.log('[useTasks] After optimistic update, cache entries:', afterUpdate.length);
+      afterUpdate.forEach(([key, data]) => {
+        console.log('[useTasks] Cache key:', key, 'Data length:', (data as any)?.length);
+      });
 
       return { previousTasks };
     },
     // On error: rollback optimistic update
     onError: (err, newTask, context) => {
+      console.log('[useTasks] onError - Rolling back');
       if (context?.previousTasks) {
         context.previousTasks.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
         });
       }
     },
-    // On success: replace optimistic task with real one
-    onSuccess: () => {
+    // On success: invalidate and refetch
+    onSuccess: (data) => {
+      console.log('[useTasks] onSuccess - Invalidating queries, new task:', data);
       queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
     },
   });

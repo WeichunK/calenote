@@ -31,11 +31,14 @@ export function TaskBoard({
   const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed' | 'archived'>('all');
 
-  // Fetch tasks
-  const { data: tasks, isLoading, error } = useTasks({
+  // Fetch tasks (API returns {tasks: Task[], total: number})
+  const { data: tasksResponse, isLoading, error } = useTasks({
     calendar_id: currentCalendar?.id,
     status: statusFilter === 'all' ? undefined : statusFilter,
   });
+
+  // Extract tasks array from paginated response
+  const tasks = tasksResponse?.tasks || [];
 
   // Delete task mutation
   const deleteTask = useDeleteTask();

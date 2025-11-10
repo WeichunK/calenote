@@ -9,10 +9,15 @@ export interface GetTasksParams {
   limit?: number;
 }
 
+export interface TasksResponse {
+  tasks: Task[];
+  total: number;
+}
+
 export const tasksApi = {
-  // 獲取所有 tasks
+  // 獲取所有 tasks (returns paginated response)
   getTasks: (params?: GetTasksParams) => {
-    return apiClient.get<Task[]>('/tasks', params);
+    return apiClient.get<TasksResponse>('/tasks', params);
   },
 
   // 獲取單個 task (包含 entries)
