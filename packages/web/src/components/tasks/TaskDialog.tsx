@@ -111,13 +111,23 @@ export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
       return;
     }
 
+    // Helper function to convert empty strings to undefined
+    const sanitizeValue = (value: any) => {
+      if (typeof value === 'string' && value.trim() === '') {
+        return undefined;
+      }
+      return value;
+    };
+
     try {
       if (isEdit) {
         // PATCH: Send only changed fields
         const data: UpdateTaskDTO = {
           ...editedFields,
           title: editedFields.title ? editedFields.title.trim() : undefined,
-          description: editedFields.description ? editedFields.description.trim() || undefined : undefined,
+          description: editedFields.description ? sanitizeValue(editedFields.description) : undefined,
+          color: editedFields.color ? sanitizeValue(editedFields.color) : undefined,
+          icon: editedFields.icon ? sanitizeValue(editedFields.icon) : undefined,
         };
 
         // Remove undefined values (don't send fields that weren't changed)
@@ -135,10 +145,10 @@ export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
         const data: CreateTaskDTO = {
           calendar_id: currentCalendar.id,
           title: currentData.title.trim(),
-          description: currentData.description?.trim() || undefined,
+          description: sanitizeValue(currentData.description),
           due_date: currentData.due_date,
-          color: currentData.color || undefined,
-          icon: currentData.icon || undefined,
+          color: sanitizeValue(currentData.color),
+          icon: sanitizeValue(currentData.icon),
         };
 
         await createTask.mutateAsync(data);
