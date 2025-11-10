@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { Entry } from '@calenote/shared';
 import { getMonthDays, groupEntriesByDate, formatDate, isSameMonth, isToday, WEEKDAYS } from '@/lib/utils/calendar';
 import { CalendarCell } from './CalendarCell';
@@ -24,8 +25,8 @@ export function CalendarGrid({
   isLoading,
   error,
 }: CalendarGridProps) {
-  const days = getMonthDays(month);
-  const entriesByDate = groupEntriesByDate(entries);
+  const days = useMemo(() => getMonthDays(month), [month]);
+  const entriesByDate = useMemo(() => groupEntriesByDate(entries), [entries]);
 
   if (error) {
     return (

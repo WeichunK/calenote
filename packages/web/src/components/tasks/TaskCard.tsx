@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { ChevronDown, ChevronRight, CheckCircle2, Circle, Plus, MoreVertical, Trash2, Edit } from 'lucide-react';
@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { AnimatedButton } from '@/components/ui/animated-button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,7 +27,7 @@ interface TaskCardProps {
   onClick?: (task: Task) => void;
 }
 
-export function TaskCard({ task, onEdit, onDelete, onAddEntry, onClick }: TaskCardProps) {
+export const TaskCard = memo(function TaskCard({ task, onEdit, onDelete, onAddEntry, onClick }: TaskCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const statusColors = {
@@ -196,4 +197,4 @@ export function TaskCard({ task, onEdit, onDelete, onAddEntry, onClick }: TaskCa
     </Card>
     </motion.div>
   );
-}
+});

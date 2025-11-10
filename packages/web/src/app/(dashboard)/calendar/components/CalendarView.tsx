@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { startOfWeek, endOfWeek, addWeeks, addDays } from 'date-fns';
 import type { Entry } from '@calenote/shared';
 import { useCalendar } from '@/lib/hooks/useCalendar';
@@ -75,35 +75,35 @@ export function CalendarView() {
     [entries]
   );
 
-  const handleDateClick = (date: Date) => {
+  const handleDateClick = useCallback((date: Date) => {
     setDialog({ type: 'create', date });
-  };
+  }, []);
 
-  const handleTimeSlotClick = (date: Date, hour: number) => {
+  const handleTimeSlotClick = useCallback((date: Date, hour: number) => {
     // Create entry with specific hour
     const dateWithHour = new Date(date);
     dateWithHour.setHours(hour, 0, 0, 0);
     setDialog({ type: 'create', date: dateWithHour });
-  };
+  }, []);
 
-  const handleEntryClick = (entry: Entry) => {
+  const handleEntryClick = useCallback((entry: Entry) => {
     setDialog({ type: 'edit', entry });
-  };
+  }, []);
 
-  const handleShowMore = (date: Date) => {
+  const handleShowMore = useCallback((date: Date) => {
     const dateEntries = entriesByDate[formatDate(date)] || [];
     setDialog({ type: 'day-list', date, entries: dateEntries });
-  };
+  }, [entriesByDate]);
 
-  const handleDialogClose = () => {
+  const handleDialogClose = useCallback(() => {
     setDialog({ type: 'closed' });
-  };
+  }, []);
 
-  const handleCreateFromDayList = () => {
+  const handleCreateFromDayList = useCallback(() => {
     if (dialog.type === 'day-list') {
       setDialog({ type: 'create', date: dialog.date });
     }
-  };
+  }, [dialog]);
 
   return (
     <div className="flex flex-col h-full">

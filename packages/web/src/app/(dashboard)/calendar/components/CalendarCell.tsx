@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { Entry } from '@calenote/shared';
 import { cn } from '@/lib/utils';
 import { EntryBadge } from './EntryBadge';
@@ -12,7 +13,7 @@ interface CalendarCellProps {
   onShowMore?: (date: Date) => void;
 }
 
-export function CalendarCell({
+export const CalendarCell = memo(function CalendarCell({
   date,
   isCurrentMonth,
   isToday,
@@ -79,4 +80,4 @@ export function CalendarCell({
       </div>
     </div>
   );
-}
+});

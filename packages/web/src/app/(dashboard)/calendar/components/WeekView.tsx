@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
 import { format, startOfWeek, addDays, parseISO, isSameDay } from 'date-fns';
 import type { Entry } from '@calenote/shared';
@@ -96,7 +96,7 @@ function getEntryPosition(entry: Entry): { top: number; height: number } {
 
 // ==================== COMPONENTS ====================
 
-function TimeSlot({
+const TimeSlot = memo(function TimeSlot({
   day,
   hour,
   entries,
@@ -171,7 +171,7 @@ function TimeSlot({
       })}
     </div>
   );
-}
+});
 
 // ==================== MAIN COMPONENT ====================
 
@@ -258,7 +258,7 @@ export function WeekView({
 
 // ==================== CURRENT TIME INDICATOR ====================
 
-function CurrentTimeIndicator({ weekDays }: { weekDays: Date[] }) {
+const CurrentTimeIndicator = memo(function CurrentTimeIndicator({ weekDays }: { weekDays: Date[] }) {
   const now = new Date();
   const currentDayIndex = weekDays.findIndex((day) => isSameDay(day, now));
 
@@ -291,4 +291,4 @@ function CurrentTimeIndicator({ weekDays }: { weekDays: Date[] }) {
       </div>
     </div>
   );
-}
+});
