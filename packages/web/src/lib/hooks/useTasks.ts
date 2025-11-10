@@ -56,7 +56,6 @@ export function useCreateTask() {
             title: newTask.title,
             description: newTask.description || '',
             status: 'active',
-            priority: newTask.priority || 0,
             due_date: newTask.due_date,
             total_entries: 0,
             completed_entries: 0,

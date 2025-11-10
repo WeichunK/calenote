@@ -24,7 +24,7 @@ import {
   Keyboard,
   HelpCircle,
 } from 'lucide-react';
-import type { Command, CommandContext, CommandGroup } from './types';
+import type { Command, CommandContext, CommandGroup, CommandCategory } from './types';
 
 // ==================== COMMAND DEFINITIONS ====================
 

@@ -55,7 +55,7 @@ export function useCreateEntry() {
             calendar_id: newEntry.calendar_id,
             title: newEntry.title,
             content: newEntry.content || '',
-            entry_type: newEntry.entry_type,
+            entry_type: newEntry.entry_type || 'note',
             timestamp: newEntry.timestamp,
             end_timestamp: newEntry.end_timestamp,
             is_all_day: newEntry.is_all_day || false,

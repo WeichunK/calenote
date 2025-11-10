@@ -34,8 +34,8 @@ export const getVariants = (variants: Variants): Variants => {
  * Returns instant transition if user prefers reduced motion
  */
 export const getTransition = (
-  transition: TargetAndTransition
-): TargetAndTransition => {
+  transition: any
+): any => {
   if (prefersReducedMotion()) {
     return { duration: 0 };
   }

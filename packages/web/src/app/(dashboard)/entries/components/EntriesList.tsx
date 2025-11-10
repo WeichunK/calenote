@@ -5,6 +5,9 @@ import { format, parseISO, isToday, isThisWeek, isPast, isFuture } from 'date-fn
 import type { Entry } from '@calenote/shared';
 import { cn } from '@/lib/utils';
 import { useToggleEntryComplete } from '@/lib/hooks/useEntries';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { TYPOGRAPHY, SPACING, INTERACTIVE, VISUAL } from '@/lib/design/tokens';
 
 interface EntriesListProps {
   entries: Entry[];
@@ -54,106 +57,121 @@ const EntryItem = memo(function EntryItem({ entry, onEntryClick, onToggleComplet
     : null;
 
   return (
-    <div
+    <Card
       data-testid="entry-item"
       className={cn(
-        'p-4 rounded-lg border-l-4 transition-colors cursor-pointer',
-        'hover:bg-accent hover:shadow-sm',
+        'cursor-pointer transition-all duration-200',
+        VISUAL.border.accent,
         getPriorityColor(entry.priority),
-        entry.is_completed && 'opacity-60'
+        entry.is_completed && 'opacity-60',
+        'hover:shadow-md hover:scale-[1.005]'
       )}
       style={{
-        backgroundColor: entry.color
-          ? `${entry.color}15`
-          : undefined,
+        backgroundColor: entry.color ? `${entry.color}08` : undefined,
       }}
       onClick={() => onEntryClick(entry)}
     >
-      <div className="flex items-start gap-3">
-        {/* Checkbox */}
-        <button
-          data-testid="entry-checkbox"
-          onClick={(e) => onToggleComplete(entry, e)}
-          className="mt-1 flex-shrink-0"
-          type="button"
-        >
-          <div
-            className={cn(
-              'w-5 h-5 rounded border-2 flex items-center justify-center transition-colors',
-              entry.is_completed
-                ? 'bg-primary border-primary'
-                : 'border-gray-300 hover:border-primary'
-            )}
+      <CardContent className={SPACING.card.padding}>
+        <div className={cn('flex items-start', SPACING.inline.gap)}>
+          {/* Checkbox */}
+          <button
+            data-testid="entry-checkbox"
+            onClick={(e) => onToggleComplete(entry, e)}
+            className="mt-1 flex-shrink-0"
+            type="button"
+            aria-label={entry.is_completed ? 'Mark as incomplete' : 'Mark as complete'}
           >
-            {entry.is_completed && (
-              <svg
-                className="w-3 h-3 text-primary-foreground"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-          </div>
-        </button>
-
-        {/* Entry Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">{icon}</span>
-            {time && (
-              <span className="text-sm font-medium text-muted-foreground">
-                {time}
-              </span>
-            )}
-            {entry.is_all_day && (
-              <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded">
-                All day
-              </span>
-            )}
-            {entry.priority !== undefined && entry.priority > 0 && (
-              <span className="text-xs px-2 py-0.5 bg-secondary text-secondary-foreground rounded">
-                {entry.priority === 3 && '🔴 High'}
-                {entry.priority === 2 && '🟡 Medium'}
-                {entry.priority === 1 && '🟢 Low'}
-              </span>
-            )}
-          </div>
-
-          <h4
-            className={cn(
-              'font-medium text-base',
-              entry.is_completed && 'line-through'
-            )}
-          >
-            {entry.title}
-          </h4>
-
-          {entry.content && (
-            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-              {entry.content}
-            </p>
-          )}
-
-          {entry.tags && entry.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {entry.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-xs px-2 py-0.5 bg-secondary text-secondary-foreground rounded"
+            <div
+              className={cn(
+                'w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-150',
+                entry.is_completed
+                  ? 'bg-primary border-primary'
+                  : 'border-gray-300 hover:border-primary hover:scale-110'
+              )}
+            >
+              {entry.is_completed && (
+                <svg
+                  className="w-3 h-3 text-primary-foreground"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  {tag}
-                </span>
-              ))}
+                  <path d="M5 13l4 4L19 7" />
+                </svg>
+              )}
             </div>
-          )}
+          </button>
+
+          {/* Entry Content */}
+          <div className="flex-1 min-w-0">
+            {/* Metadata row */}
+            <div className={cn('flex items-center flex-wrap', SPACING.inline.gapSmall, 'mb-2')}>
+              <span className="text-lg" aria-label={`${entry.entry_type} type`}>{icon}</span>
+              {time && (
+                <span className={TYPOGRAPHY.smallMuted}>
+                  {time}
+                </span>
+              )}
+              {entry.is_all_day && (
+                <Badge variant="secondary" className="text-xs">
+                  All day
+                </Badge>
+              )}
+              {entry.priority !== undefined && entry.priority > 0 && (
+                <Badge
+                  variant="secondary"
+                  className={cn(
+                    'text-xs',
+                    entry.priority === 3 && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                    entry.priority === 2 && 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+                    entry.priority === 1 && 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                  )}
+                >
+                  {entry.priority === 3 && 'High Priority'}
+                  {entry.priority === 2 && 'Medium'}
+                  {entry.priority === 1 && 'Low'}
+                </Badge>
+              )}
+            </div>
+
+            {/* Title */}
+            <h4
+              className={cn(
+                TYPOGRAPHY.cardTitle,
+                entry.is_completed && 'line-through text-muted-foreground'
+              )}
+            >
+              {entry.title}
+            </h4>
+
+            {/* Description */}
+            {entry.content && (
+              <p className={cn(TYPOGRAPHY.smallMuted, 'mt-1.5 line-clamp-2')}>
+                {entry.content}
+              </p>
+            )}
+
+            {/* Tags */}
+            {entry.tags && entry.tags.length > 0 && (
+              <div className={cn('flex flex-wrap', SPACING.inline.gapSmall, 'mt-2')}>
+                {entry.tags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="outline"
+                    className={TYPOGRAPHY.caption}
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 });
 
@@ -242,27 +260,31 @@ export function EntriesList({ entries, onEntryClick, groupBy = 'none' }: Entries
 
   if (entries.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p className="text-lg">No entries found</p>
-        <p className="text-sm mt-2">Try adjusting your filters or create a new entry</p>
-      </div>
+      <Card className="text-center py-12">
+        <CardContent>
+          <p className={cn(TYPOGRAPHY.cardTitle, 'text-muted-foreground')}>No entries found</p>
+          <p className={cn(TYPOGRAPHY.smallMuted, 'mt-2')}>
+            Try adjusting your filters or create a new entry
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className={SPACING.section.gap}>
       {Object.entries(groupedEntries).map(([groupLabel, groupEntries]) => {
         if (groupEntries.length === 0) return null;
 
         return (
-          <div key={groupLabel}>
+          <div key={groupLabel} className={SPACING.section.gapSmall}>
             {groupBy !== 'none' && (
-              <h3 className="text-sm font-semibold text-muted-foreground mb-3">
+              <h3 className={cn(TYPOGRAPHY.small, 'font-semibold text-muted-foreground mb-3 uppercase tracking-wide')}>
                 {groupLabel} ({groupEntries.length})
               </h3>
             )}
 
-            <div className="space-y-2">
+            <div className={SPACING.section.gapSmall}>
               {groupEntries.map((entry) => (
                 <EntryItem
                   key={entry.id}
