@@ -291,57 +291,77 @@ body {
   }
 }
 
-/* ==================== COMPONENT CLASSES ==================== */
+/* ==================== COMPONENT CLASSES (Pure CSS) ==================== */
 
-@layer components {
-  /* Entry card with hover effect */
-  .entry-card {
-    @apply transition-all duration-200 ease-in-out;
-  }
+/* Entry card with hover effect */
+.entry-card {
+  transition: all 0.2s ease-in-out;
+}
 
-  .entry-card:hover {
-    @apply scale-[1.01] shadow-md;
-  }
+.entry-card:hover {
+  transform: scale(1.01);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
 
-  .entry-card-active {
-    @apply ring-2 ring-primary ring-offset-2;
-  }
+.entry-card-active {
+  box-shadow: 0 0 0 2px hsl(var(--primary));
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
 
-  /* Button interactions */
-  .button-interactive {
-    @apply transition-all duration-150 ease-in-out;
-    @apply active:scale-95 hover:scale-105;
-  }
+/* Button interactions */
+.button-interactive {
+  transition: all 0.15s ease-in-out;
+}
 
-  /* Smooth transitions for all interactive elements */
-  .smooth-transition {
-    @apply transition-all duration-200 ease-in-out;
-  }
+.button-interactive:active {
+  transform: scale(0.95);
+}
 
-  /* Glass morphism effect */
-  .glass {
-    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm;
-  }
+.button-interactive:hover {
+  transform: scale(1.05);
+}
 
-  /* Elevated card effect */
-  .card-elevated {
-    @apply shadow-lg hover:shadow-xl transition-shadow duration-300;
-  }
+/* Smooth transitions for all interactive elements */
+.smooth-transition {
+  transition: all 0.2s ease-in-out;
+}
 
-  /* Skeleton loading animation */
-  .skeleton {
-    @apply animate-pulse bg-muted rounded;
-  }
+/* Glass morphism effect */
+.glass {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+}
 
-  /* Fade in on load */
-  .fade-in-on-load {
-    animation: fade-in 0.4s ease-out;
-  }
+.dark .glass {
+  background-color: rgba(17, 24, 39, 0.8);
+}
 
-  /* Smooth scroll behavior */
-  .smooth-scroll {
-    scroll-behavior: smooth;
-  }
+/* Elevated card effect */
+.card-elevated {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.card-elevated:hover {
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Skeleton loading animation */
+.skeleton {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: hsl(var(--muted));
+  border-radius: var(--radius);
+}
+
+/* Fade in on load */
+.fade-in-on-load {
+  animation: fade-in 0.4s ease-out;
+}
+
+/* Smooth scroll behavior */
+.smooth-scroll {
+  scroll-behavior: smooth;
 }
 
 /* ==================== PERFORMANCE OPTIMIZATIONS ==================== */
@@ -383,16 +403,16 @@ body {
 }
 
 /* Focus visible styles for keyboard navigation */
-@layer base {
-  * {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
-  }
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--ring));
+  outline-offset: 2px;
+}
 
-  /* High contrast mode support */
-  @media (prefers-contrast: high) {
-    * {
-      @apply ring-offset-4;
-    }
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  *:focus-visible {
+    outline-offset: 4px;
   }
 }
 
