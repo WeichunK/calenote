@@ -1,14 +1,17 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { startOfWeek, endOfWeek, addWeeks, addDays } from 'date-fns';
 import type { Entry } from '@calenote/shared';
 import { useCalendar } from '@/lib/hooks/useCalendar';
 import { useCalendars } from '@/lib/hooks/useCalendars';
 import { useEntries } from '@/lib/hooks/useEntries';
 import { useCalendarStore } from '@/lib/stores/calendarStore';
 import { formatDate, startOfMonth, endOfMonth, groupEntriesByDate } from '@/lib/utils/calendar';
-import { CalendarHeader } from './CalendarHeader';
+import { CalendarHeader, type CalendarViewType } from './CalendarHeader';
 import { CalendarGrid } from './CalendarGrid';
+import { WeekView } from './WeekView';
+import { DayView } from './DayView';
 import { EntryDialog } from './EntryDialog';
 import { DayEntriesModal } from './DayEntriesModal';
 
@@ -22,6 +25,7 @@ type DialogState =
 export function CalendarView() {
   const { viewingMonth, goToToday, goToPrevMonth, goToNextMonth } = useCalendar();
   const [dialog, setDialog] = useState<DialogState>({ type: 'closed' });
+  const [viewType, setViewType] = useState<CalendarViewType>('month');
 
   // Fetch calendars and auto-select default
   useCalendars();
@@ -29,14 +33,38 @@ export function CalendarView() {
 
   // WebSocket connection is now managed at app level via WebSocketProvider
 
-  // Fetch entries for current month
+  // Fetch entries for current view
+  const { start_date, end_date } = useMemo(() => {
+    switch (viewType) {
+      case 'week': {
+        const weekStart = startOfWeek(viewingMonth, { weekStartsOn: 0 });
+        const weekEnd = endOfWeek(viewingMonth, { weekStartsOn: 0 });
+        return {
+          start_date: formatDate(weekStart),
+          end_date: formatDate(weekEnd),
+        };
+      }
+      case 'day':
+        return {
+          start_date: formatDate(viewingMonth),
+          end_date: formatDate(viewingMonth),
+        };
+      case 'month':
+      default:
+        return {
+          start_date: formatDate(startOfMonth(viewingMonth)),
+          end_date: formatDate(endOfMonth(viewingMonth)),
+        };
+    }
+  }, [viewingMonth, viewType]);
+
   const { data: entries, isLoading, error } = useEntries(
     currentCalendarId
       ? {
           calendar_id: currentCalendarId,
           has_timestamp: true,
-          start_date: formatDate(startOfMonth(viewingMonth)),
-          end_date: formatDate(endOfMonth(viewingMonth)),
+          start_date,
+          end_date,
         }
       : undefined
   );
@@ -49,6 +77,13 @@ export function CalendarView() {
 
   const handleDateClick = (date: Date) => {
     setDialog({ type: 'create', date });
+  };
+
+  const handleTimeSlotClick = (date: Date, hour: number) => {
+    // Create entry with specific hour
+    const dateWithHour = new Date(date);
+    dateWithHour.setHours(hour, 0, 0, 0);
+    setDialog({ type: 'create', date: dateWithHour });
   };
 
   const handleEntryClick = (entry: Entry) => {
@@ -77,16 +112,42 @@ export function CalendarView() {
         onPrevMonth={goToPrevMonth}
         onNextMonth={goToNextMonth}
         onToday={goToToday}
+        viewType={viewType}
+        onViewTypeChange={setViewType}
       />
-      <CalendarGrid
-        month={viewingMonth}
-        entries={entries || []}
-        onDateClick={handleDateClick}
-        onEntryClick={handleEntryClick}
-        onShowMore={handleShowMore}
-        isLoading={isLoading}
-        error={error || undefined}
-      />
+
+      {/* Render different views based on viewType */}
+      {viewType === 'month' && (
+        <CalendarGrid
+          month={viewingMonth}
+          entries={entries || []}
+          onDateClick={handleDateClick}
+          onEntryClick={handleEntryClick}
+          onShowMore={handleShowMore}
+          isLoading={isLoading}
+          error={error || undefined}
+        />
+      )}
+
+      {viewType === 'week' && (
+        <WeekView
+          week={viewingMonth}
+          entries={entries || []}
+          onTimeSlotClick={handleTimeSlotClick}
+          onEntryClick={handleEntryClick}
+          isLoading={isLoading}
+        />
+      )}
+
+      {viewType === 'day' && (
+        <DayView
+          day={viewingMonth}
+          entries={entries || []}
+          onTimeSlotClick={handleTimeSlotClick}
+          onEntryClick={handleEntryClick}
+          isLoading={isLoading}
+        />
+      )}
 
       <EntryDialog
         open={dialog.type === 'create' || dialog.type === 'edit'}
