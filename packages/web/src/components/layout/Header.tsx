@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Search, Bell, Settings, User, Menu } from 'lucide-react';
+import { Search, Bell, Settings, User, Menu, Keyboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -15,11 +15,14 @@ import {
 import { useUIStore } from '@/lib/stores/uiStore';
 import { useAuthStore } from '@/lib/stores/authStore';
 import { useIsClient } from '@/lib/hooks/useIsClient';
+import { useCommandPalette } from '@/components/command-palette/CommandPaletteProvider';
+import { KEY_MAPPINGS } from '@/lib/commands/types';
 
 export function Header() {
   const isClient = useIsClient();
   const toggleMobileSidebar = useUIStore((state) => state.toggleMobileSidebar);
   const { user, logout } = useAuthStore();
+  const { openCommandPalette, openShortcuts } = useCommandPalette();
 
   const handleLogout = () => {
     logout();
@@ -43,19 +46,20 @@ export function Header() {
           <span className="sr-only">Toggle menu</span>
         </Button>
 
-        {/* Search - Desktop */}
-        <div className="hidden md:flex flex-1 max-w-md">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search entries, tasks..."
-              className="pl-10 bg-muted/50"
-            />
-          </div>
-        </div>
+        {/* Command Palette Trigger - Desktop */}
+        <button
+          onClick={openCommandPalette}
+          className="hidden md:flex flex-1 max-w-md items-center gap-2 rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+        >
+          <Search className="h-4 w-4 shrink-0" />
+          <span>Search entries, tasks...</span>
+          <kbd className="pointer-events-none ml-auto inline-flex h-5 select-none items-center gap-1 rounded border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+            {KEY_MAPPINGS.mod}K
+          </kbd>
+        </button>
 
         {/* Search - Mobile (Icon only) */}
-        <Button variant="ghost" size="icon" className="md:hidden">
+        <Button variant="ghost" size="icon" className="md:hidden" onClick={openCommandPalette}>
           <Search className="h-5 w-5" />
           <span className="sr-only">Search</span>
         </Button>
@@ -69,6 +73,12 @@ export function Header() {
           <Button variant="ghost" size="icon">
             <Bell className="h-5 w-5" />
             <span className="sr-only">Notifications</span>
+          </Button>
+
+          {/* Keyboard Shortcuts */}
+          <Button variant="ghost" size="icon" onClick={openShortcuts}>
+            <Keyboard className="h-5 w-5" />
+            <span className="sr-only">Keyboard Shortcuts</span>
           </Button>
 
           {/* Settings */}
