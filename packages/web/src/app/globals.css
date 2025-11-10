@@ -3,16 +3,21 @@
 @tailwind utilities;
 
 :root {
+  /* Base colors */
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
   --card: 0 0% 100%;
   --card-foreground: 222.2 84% 4.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
-  --primary: 221.2 83.2% 53.3%;
-  --primary-foreground: 210 40% 98%;
+
+  /* Brand colors */
+  --primary: 263 70% 50%;
+  --primary-foreground: 0 0% 100%;
   --secondary: 210 40% 96.1%;
   --secondary-foreground: 222.2 47.4% 11.2%;
+
+  /* UI colors */
   --muted: 210 40% 96.1%;
   --muted-foreground: 215.4 16.3% 46.9%;
   --accent: 210 40% 96.1%;
@@ -21,21 +26,55 @@
   --destructive-foreground: 210 40% 98%;
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
+  --ring: 263 70% 50%;
+
+  /* Semantic colors */
+  --success: 142 76% 36%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 0%;
+  --error: 0 84.2% 60.2%;
+  --error-foreground: 210 40% 98%;
+  --info: 199 89% 48%;
+  --info-foreground: 0 0% 100%;
+
+  /* Priority colors */
+  --priority-none: 0 0% 62%;
+  --priority-low: 120 60% 50%;
+  --priority-medium: 45 100% 50%;
+  --priority-high: 0 100% 50%;
+
+  /* Status colors */
+  --status-active: 212 100% 48%;
+  --status-completed: 142 71% 45%;
+  --status-archived: 0 0% 62%;
+  --status-cancelled: 0 84% 60%;
+
+  /* Entry type colors */
+  --entry-event: 263 70% 50%;
+  --entry-note: 142 76% 36%;
+  --entry-reminder: 38 92% 50%;
+
+  /* Border radius */
   --radius: 0.5rem;
 }
 
 .dark {
+  /* Base colors */
   --background: 222.2 84% 4.9%;
   --foreground: 210 40% 98%;
   --card: 222.2 84% 4.9%;
   --card-foreground: 210 40% 98%;
   --popover: 222.2 84% 4.9%;
   --popover-foreground: 210 40% 98%;
-  --primary: 217.2 91.2% 59.8%;
-  --primary-foreground: 222.2 47.4% 11.2%;
+
+  /* Brand colors */
+  --primary: 263 70% 60%;
+  --primary-foreground: 0 0% 100%;
   --secondary: 217.2 32.6% 17.5%;
   --secondary-foreground: 210 40% 98%;
+
+  /* UI colors */
   --muted: 217.2 32.6% 17.5%;
   --muted-foreground: 215 20.2% 65.1%;
   --accent: 217.2 32.6% 17.5%;
@@ -44,11 +83,348 @@
   --destructive-foreground: 210 40% 98%;
   --border: 217.2 32.6% 17.5%;
   --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 48%;
+  --ring: 263 70% 60%;
+
+  /* Semantic colors - adjusted for dark mode */
+  --success: 142 76% 45%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 55%;
+  --warning-foreground: 0 0% 0%;
+  --error: 0 84.2% 65%;
+  --error-foreground: 210 40% 98%;
+  --info: 199 89% 55%;
+  --info-foreground: 0 0% 100%;
+
+  /* Priority colors - brighter for dark mode */
+  --priority-none: 0 0% 50%;
+  --priority-low: 120 60% 55%;
+  --priority-medium: 45 100% 55%;
+  --priority-high: 0 100% 55%;
+
+  /* Status colors - adjusted for dark mode */
+  --status-active: 212 100% 55%;
+  --status-completed: 142 71% 50%;
+  --status-archived: 0 0% 50%;
+  --status-cancelled: 0 84% 65%;
+
+  /* Entry type colors - adjusted for dark mode */
+  --entry-event: 263 70% 60%;
+  --entry-note: 142 76% 45%;
+  --entry-reminder: 38 92% 55%;
 }
 
 body {
   font-family: var(--font-sans);
   background: hsl(var(--background));
   color: hsl(var(--foreground));
+}
+
+/* ==================== ANIMATION KEYFRAMES ==================== */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-in-from-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-from-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-from-bottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  75% {
+    transform: translateX(10px);
+  }
+}
+
+/* ==================== ANIMATION UTILITIES ==================== */
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.3s ease-out;
+  }
+
+  .animate-fade-in-down {
+    animation: fade-in-down 0.3s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.2s ease-out;
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-from-right 0.3s ease-out;
+  }
+
+  .animate-slide-in-left {
+    animation: slide-in-from-left 0.3s ease-out;
+  }
+
+  .animate-slide-in-bottom {
+    animation: slide-in-from-bottom 0.3s ease-out;
+  }
+
+  .animate-bounce-in {
+    animation: bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+
+  /* Animation delays */
+  .animation-delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .animation-delay-500 {
+    animation-delay: 500ms;
+  }
+}
+
+/* ==================== COMPONENT CLASSES ==================== */
+
+@layer components {
+  /* Entry card with hover effect */
+  .entry-card {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .entry-card:hover {
+    @apply scale-[1.01] shadow-md;
+  }
+
+  .entry-card-active {
+    @apply ring-2 ring-primary ring-offset-2;
+  }
+
+  /* Button interactions */
+  .button-interactive {
+    @apply transition-all duration-150 ease-in-out;
+    @apply active:scale-95 hover:scale-105;
+  }
+
+  /* Smooth transitions for all interactive elements */
+  .smooth-transition {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm;
+  }
+
+  /* Elevated card effect */
+  .card-elevated {
+    @apply shadow-lg hover:shadow-xl transition-shadow duration-300;
+  }
+
+  /* Skeleton loading animation */
+  .skeleton {
+    @apply animate-pulse bg-muted rounded;
+  }
+
+  /* Fade in on load */
+  .fade-in-on-load {
+    animation: fade-in 0.4s ease-out;
+  }
+
+  /* Smooth scroll behavior */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ==================== PERFORMANCE OPTIMIZATIONS ==================== */
+
+/* GPU acceleration for transforms */
+.gpu-accelerate {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Will-change optimization */
+.will-animate {
+  will-change: transform, opacity;
+}
+
+/* Optimize for painting */
+.contain-paint {
+  contain: paint;
+}
+
+/* Optimize for layout */
+.contain-layout {
+  contain: layout;
+}
+
+/* ==================== ACCESSIBILITY ==================== */
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Focus visible styles for keyboard navigation */
+@layer base {
+  * {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    * {
+      @apply ring-offset-4;
+    }
+  }
+}
+
+/* ==================== LOADING STATES ==================== */
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ==================== UTILITY CLASSES ==================== */
+
+/* Hide element but keep in DOM for animations */
+.invisible-but-present {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Smooth opacity transitions */
+.fade-transition {
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Transform transitions */
+.transform-transition {
+  transition: transform 0.2s ease-in-out;
+}
+
+/* All property transitions */
+.all-transition {
+  transition: all 0.2s ease-in-out;
 }
