@@ -5,7 +5,7 @@ export interface Entry {
   calendar_id: string;
   title: string;
   content?: string;
-  entry_type: 'event' | 'note' | 'reminder';
+  entry_type: 'note' | 'task' | 'event'; // Must match backend validation
   timestamp?: string; // ISO 8601 format
   end_timestamp?: string;
   is_all_day?: boolean;
@@ -29,7 +29,7 @@ export interface CreateEntryDTO {
   calendar_id: string;
   title: string;
   content?: string;
-  entry_type?: 'event' | 'note' | 'reminder';
+  entry_type?: 'note' | 'task' | 'event'; // Must match backend validation
   timestamp?: string;
   end_timestamp?: string;
   is_all_day?: boolean;
@@ -41,8 +41,20 @@ export interface CreateEntryDTO {
   task_id?: string;
 }
 
-export interface UpdateEntryDTO extends Partial<CreateEntryDTO> {
-  is_completed?: boolean;
+export interface UpdateEntryDTO {
+  // Only fields that can be updated (excludes calendar_id, is_completed)
+  title?: string;
+  content?: string;
+  entry_type?: 'note' | 'task' | 'event'; // Must match backend validation
+  timestamp?: string;
+  end_timestamp?: string;
+  is_all_day?: boolean;
+  priority?: 0 | 1 | 2 | 3;
+  tags?: string[];
+  color?: string;
+  reminder_time?: string;
+  recurrence_rule?: string;
+  position_in_task?: number;
 }
 
 // For frontend use

@@ -31,7 +31,7 @@ import { EntryFormFields, type EntryFormValues } from './EntryFormFields';
 const entryFormSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
   content: z.string().optional(),
-  entry_type: z.enum(['event', 'note', 'reminder']),
+  entry_type: z.enum(['note', 'task', 'event']), // Must match backend validation
   timestamp: z.string().optional(),
   end_timestamp: z.string().optional(),
   is_all_day: z.boolean().optional(),
@@ -120,24 +120,50 @@ export function EntryDialog({
         ? values.tags.split(',').map((tag) => tag.trim()).filter(Boolean)
         : undefined;
 
-      const data: CreateEntryDTO = {
-        calendar_id: calendarId,
-        title: values.title,
-        content: values.content || undefined,
-        entry_type: values.entry_type,
-        timestamp: values.timestamp || undefined,
-        end_timestamp: values.end_timestamp || undefined,
-        is_all_day: values.is_all_day,
-        priority: values.priority as 0 | 1 | 2 | 3 | undefined,
-        tags,
-        color: values.color || undefined,
-        task_id: defaultTaskId || undefined, // Include task_id if provided
+      // Helper function to convert empty strings to undefined
+      const sanitizeValue = (value: any) => {
+        if (typeof value === 'string' && value.trim() === '') {
+          return undefined;
+        }
+        return value;
       };
 
       if (isEditMode) {
-        await updateEntry.mutateAsync({ id: entry.id, data });
+        // Update payload: exclude calendar_id (immutable) and is_completed (use separate endpoint)
+        // Only include fields that have actual values (not empty strings)
+        const updateData: any = {
+          title: values.title,
+        };
+
+        // Only add optional fields if they have values
+        if (sanitizeValue(values.content)) updateData.content = values.content;
+        if (values.entry_type) updateData.entry_type = values.entry_type;
+        if (sanitizeValue(values.timestamp)) updateData.timestamp = values.timestamp;
+        if (sanitizeValue(values.end_timestamp)) updateData.end_timestamp = values.end_timestamp;
+        if (values.is_all_day !== undefined) updateData.is_all_day = values.is_all_day;
+        if (values.priority !== undefined && values.priority !== null) {
+          updateData.priority = values.priority as 0 | 1 | 2 | 3;
+        }
+        if (tags && tags.length > 0) updateData.tags = tags;
+        if (sanitizeValue(values.color)) updateData.color = values.color;
+
+        await updateEntry.mutateAsync({ id: entry.id, data: updateData });
       } else {
-        await createEntry.mutateAsync(data);
+        // Create payload: includes calendar_id and optional task_id
+        const createData: CreateEntryDTO = {
+          calendar_id: calendarId,
+          title: values.title,
+          content: sanitizeValue(values.content),
+          entry_type: values.entry_type,
+          timestamp: sanitizeValue(values.timestamp),
+          end_timestamp: sanitizeValue(values.end_timestamp),
+          is_all_day: values.is_all_day,
+          priority: values.priority as 0 | 1 | 2 | 3 | undefined,
+          tags: tags && tags.length > 0 ? tags : undefined,
+          color: sanitizeValue(values.color),
+          task_id: defaultTaskId || undefined,
+        };
+        await createEntry.mutateAsync(createData);
       }
 
       onOpenChange(false);

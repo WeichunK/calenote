@@ -24,7 +24,7 @@ import { Switch } from '@/components/ui/switch';
 export type EntryFormValues = {
   title: string;
   content?: string;
-  entry_type: 'event' | 'note' | 'reminder';
+  entry_type: 'note' | 'task' | 'event'; // Must match backend validation
   timestamp?: string;
   end_timestamp?: string;
   is_all_day?: boolean;
@@ -77,9 +77,9 @@ export function EntryFormFields({ form, error }: EntryFormFieldsProps) {
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="event">📅 Event</SelectItem>
-                <SelectItem value="reminder">⏰ Reminder</SelectItem>
                 <SelectItem value="note">📝 Note</SelectItem>
+                <SelectItem value="task">✅ Task</SelectItem>
+                <SelectItem value="event">📅 Event</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />

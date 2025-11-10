@@ -55,6 +55,16 @@ export class ApiClient {
     this.client.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
+        // Log detailed error information for debugging
+        if (error.response?.status === 422) {
+          console.error('[API Client] 422 Validation Error:', {
+            url: error.config?.url,
+            method: error.config?.method,
+            data: error.config?.data,
+            response: error.response?.data,
+          });
+        }
+
         const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
         // 處理 401 - token 過期
@@ -122,7 +132,9 @@ export class ApiClient {
   }
 
   async patch<T>(url: string, data?: any): Promise<T> {
+    console.log('[API Client] PATCH request:', { url, data });
     const response = await this.client.patch<T>(url, data);
+    console.log('[API Client] PATCH response:', response.data);
     return response.data;
   }
 
