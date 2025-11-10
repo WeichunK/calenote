@@ -151,6 +151,13 @@ export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
           icon: sanitizeValue(currentData.icon),
         };
 
+        console.log('[TaskDialog] Creating task with data:', {
+          currentData,
+          sanitizedData: data,
+          colorBefore: currentData.color,
+          colorAfter: sanitizeValue(currentData.color),
+        });
+
         await createTask.mutateAsync(data);
         toast({
           title: 'Success',
@@ -161,10 +168,24 @@ export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
       // Reset and close
       setEditedFields({});
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[TaskDialog] Error creating/updating task:', error);
+      console.error('[TaskDialog] Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+
+      // Show specific error message if available
+      const errorMessage = error.response?.data?.detail
+        ? (typeof error.response.data.detail === 'string'
+            ? error.response.data.detail
+            : JSON.stringify(error.response.data.detail))
+        : (isEdit ? 'Failed to update task' : 'Failed to create task');
+
       toast({
         title: 'Error',
-        description: isEdit ? 'Failed to update task' : 'Failed to create task',
+        description: errorMessage,
         variant: 'destructive',
       });
     }

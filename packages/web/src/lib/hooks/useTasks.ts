@@ -48,7 +48,6 @@ export function useCreateTask() {
       queryClient.setQueriesData<Task[]>(
         { queryKey: taskKeys.lists() },
         (old) => {
-          if (!old) return old;
           // Create temporary task with optimistic ID
           const optimisticTask: Task = {
             id: `temp-${Date.now()}`,
@@ -64,6 +63,12 @@ export function useCreateTask() {
             updated_at: new Date().toISOString(),
             last_modified_by: undefined,
           };
+
+          // If old is undefined or not an array, start with new task
+          if (!old || !Array.isArray(old)) {
+            return [optimisticTask];
+          }
+
           return [optimisticTask, ...old];
         }
       );

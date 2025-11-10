@@ -127,7 +127,9 @@ export class ApiClient {
   }
 
   async post<T>(url: string, data?: any): Promise<T> {
+    console.log('[API Client] POST request:', { url, data });
     const response = await this.client.post<T>(url, data);
+    console.log('[API Client] POST response:', response.data);
     return response.data;
   }
 
