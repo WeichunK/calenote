@@ -1,6 +1,9 @@
 import type { Entry } from '@calenote/shared';
 import { getMonthDays, groupEntriesByDate, formatDate, isSameMonth, isToday, WEEKDAYS } from '@/lib/utils/calendar';
 import { CalendarCell } from './CalendarCell';
+import { CalendarSkeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { AlertCircle, Calendar } from 'lucide-react';
 
 interface CalendarGridProps {
   month: Date;
@@ -26,18 +29,16 @@ export function CalendarGrid({
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-destructive">Failed to load entries. Please try again.</div>
-      </div>
+      <EmptyState
+        icon={AlertCircle}
+        title="Failed to load calendar"
+        description="We couldn't load your entries. Please try again."
+      />
     );
   }
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
+    return <CalendarSkeleton />;
   }
 
   return (

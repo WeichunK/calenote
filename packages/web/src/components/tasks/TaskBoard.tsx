@@ -1,14 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Plus, Loader2, CheckSquare, AlertCircle } from 'lucide-react';
 import type { Task } from '@calenote/shared';
-import { Button } from '@/components/ui/button';
+import { AnimatedButton } from '@/components/ui/animated-button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TaskCard } from './TaskCard';
+import { TaskCardSkeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 import { useTasks, useDeleteTask } from '@/lib/hooks/useTasks';
 import { useCalendars } from '@/lib/hooks/useCalendars';
 import { useToast } from '@/hooks/use-toast';
+import { staggerChildren } from '@/lib/animations/variants';
 
 interface TaskBoardProps {
   onCreateTask?: () => void;
@@ -58,10 +62,11 @@ export function TaskBoard({
 
   if (error) {
     return (
-      <div className="rounded-lg border border-destructive p-8 text-center">
-        <p className="text-destructive">Failed to load tasks</p>
-        <p className="text-sm text-muted-foreground mt-2">{(error as Error).message}</p>
-      </div>
+      <EmptyState
+        icon={AlertCircle}
+        title="Failed to load tasks"
+        description={(error as Error).message || 'Please try again later.'}
+      />
     );
   }
 
@@ -78,36 +83,36 @@ export function TaskBoard({
           </TabsList>
         </Tabs>
 
-        <Button onClick={onCreateTask} className="w-full sm:w-auto">
+        <AnimatedButton onClick={onCreateTask} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           <span className="sm:inline">New Task</span>
-        </Button>
+        </AnimatedButton>
       </div>
 
       {/* Loading State */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      )}
+      {isLoading && <TaskCardSkeleton />}
 
       {/* Empty State */}
       {!isLoading && (!tasks || tasks.length === 0) && (
-        <div className="rounded-lg border border-dashed p-12 text-center">
-          <h3 className="text-lg font-semibold mb-2">No tasks yet</h3>
-          <p className="text-muted-foreground mb-4">
-            Create your first task to organize your entries
-          </p>
-          <Button onClick={onCreateTask}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Task
-          </Button>
-        </div>
+        <EmptyState
+          icon={CheckSquare}
+          title="No tasks yet"
+          description={`Create your first task to organize your ${statusFilter === 'all' ? '' : statusFilter + ' '}entries`}
+          action={{
+            label: 'Create Task',
+            onClick: onCreateTask || (() => {}),
+          }}
+        />
       )}
 
-      {/* Tasks Grid */}
+      {/* Tasks Grid with Stagger Animation */}
       {!isLoading && tasks && tasks.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <motion.div
+          className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+          variants={staggerChildren}
+          initial="initial"
+          animate="animate"
+        >
           {tasks.map((task) => (
             <TaskCard
               key={task.id}
@@ -118,7 +123,7 @@ export function TaskBoard({
               onClick={onTaskClick}
             />
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Task Count */}

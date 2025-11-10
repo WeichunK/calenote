@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { ChevronDown, ChevronRight, CheckCircle2, Circle, Plus, MoreVertical, Trash2, Edit } from 'lucide-react';
 import type { Task } from '@calenote/shared';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { AnimatedButton } from '@/components/ui/animated-button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -15,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { fadeInUp, hoverScale } from '@/lib/animations/variants';
 
 interface TaskCardProps {
   task: Task;
@@ -42,22 +44,31 @@ export function TaskCard({ task, onEdit, onDelete, onAddEntry, onClick }: TaskCa
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </Button>
+    <motion.div
+      variants={fadeInUp}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
+      className="origin-center"
+    >
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <AnimatedButton
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => setIsExpanded(!isExpanded)}
+                animationIntensity="subtle"
+              >
+                {isExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </AnimatedButton>
 
             {task.icon && <span className="text-xl">{task.icon}</span>}
 
@@ -183,5 +194,6 @@ export function TaskCard({ task, onEdit, onDelete, onAddEntry, onClick }: TaskCa
         )}
       </CardContent>
     </Card>
+    </motion.div>
   );
 }
