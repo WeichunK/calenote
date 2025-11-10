@@ -74,7 +74,7 @@ export function TaskBoard({
     <div className="space-y-6">
       {/* Header with Filters */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)} className="w-full sm:w-auto">
+        <Tabs value={statusFilter} onValueChange={(v: string) => setStatusFilter(v as any)} className="w-full sm:w-auto">
           <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:flex">
             <TabsTrigger value="all" className="text-xs sm:text-sm">All</TabsTrigger>
             <TabsTrigger value="active" className="text-xs sm:text-sm">Active</TabsTrigger>

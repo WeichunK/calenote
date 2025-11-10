@@ -219,6 +219,7 @@ export function FilterSortBar({ filters, onFiltersChange }: FilterSortBarProps) 
                 <SlidersHorizontal className="h-4 w-4" />
               </Button>
             </SheetTrigger>
+            {/* @ts-ignore - SheetContent type issue with children prop */}
             <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
               <SheetHeader>
                 <SheetTitle>Filters & Sort</SheetTitle>

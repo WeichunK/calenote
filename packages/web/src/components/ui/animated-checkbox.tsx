@@ -15,7 +15,7 @@ import { checkboxCheck, checkboxBox } from '@/lib/animations/variants';
 // ==================== ANIMATED CHECKBOX ====================
 
 export interface AnimatedCheckboxProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'> {
   checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
   /**
@@ -247,6 +247,8 @@ export function ToggleCheckbox({
   offLabel = 'Off',
   disabled,
   className,
+  size,
+  noAnimation,
   ...props
 }: ToggleCheckboxProps) {
   return (

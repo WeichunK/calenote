@@ -175,6 +175,7 @@ export function TaskDialog({ open, onOpenChange, task }: TaskDialogProps) {
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={handleCancel}>
+        {/* @ts-ignore - SheetContent type issue with children prop */}
         <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
           <SheetHeader>
             <SheetTitle>{isEdit ? 'Edit Task' : 'Create New Task'}</SheetTitle>
