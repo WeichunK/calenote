@@ -141,7 +141,13 @@ export class ApiClient {
   }
 
   async delete<T>(url: string): Promise<T> {
+    console.log('[API Client] DELETE request:', { url });
     const response = await this.client.delete<T>(url);
+    console.log('[API Client] DELETE response:', {
+      status: response.status,
+      data: response.data,
+      headers: response.headers,
+    });
     return response.data;
   }
 

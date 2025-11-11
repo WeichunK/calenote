@@ -10,6 +10,7 @@ from app.api.deps import get_db, get_current_user
 from app.crud.task import task_crud
 from app.crud.calendar import calendar_crud
 from app.models.user import User
+from app.core.websocket_manager import manager
 from app.schemas.task import (
     TaskCreate,
     TaskUpdate,

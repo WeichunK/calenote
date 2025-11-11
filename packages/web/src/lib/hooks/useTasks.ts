@@ -142,36 +142,52 @@ export function useDeleteTask() {
     mutationFn: (id: string) => tasksApi.deleteTask(id),
     // Optimistic update: immediately remove task from cache
     onMutate: async (deletedId) => {
-      // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: taskKeys.lists() });
+      console.log('[useDeleteTask] onMutate - Deleting task:', deletedId);
 
-      // Snapshot previous values
-      const previousLists = queryClient.getQueriesData({ queryKey: taskKeys.lists() });
+      try {
+        // Cancel outgoing refetches
+        await queryClient.cancelQueries({ queryKey: taskKeys.lists() });
 
-      // Optimistically remove task from all matching queries (handles paginated response)
-      queryClient.setQueriesData(
-        { queryKey: taskKeys.lists() },
-        (old: any) => {
-          // Handle paginated response {tasks: Task[], total: number}
-          if (old && typeof old === 'object' && 'tasks' in old) {
-            return {
-              ...old,
-              tasks: old.tasks.filter((task: Task) => task.id !== deletedId),
-              total: old.total - 1,
-            };
+        // Snapshot previous values
+        const previousLists = queryClient.getQueriesData({ queryKey: taskKeys.lists() });
+        console.log('[useDeleteTask] Previous cache entries:', previousLists.length);
+
+        // Optimistically remove task from all matching queries (handles paginated response)
+        queryClient.setQueriesData(
+          { queryKey: taskKeys.lists() },
+          (old: any) => {
+            console.log('[useDeleteTask] Updating cache, old data:', old);
+
+            // Handle paginated response {tasks: Task[], total: number}
+            if (old && typeof old === 'object' && 'tasks' in old) {
+              console.log('[useDeleteTask] Paginated response detected');
+              const updated = {
+                ...old,
+                tasks: old.tasks.filter((task: Task) => task.id !== deletedId),
+                total: old.total - 1,
+              };
+              console.log('[useDeleteTask] Updated cache:', updated);
+              return updated;
+            }
+            // Handle array response (legacy)
+            if (Array.isArray(old)) {
+              console.log('[useDeleteTask] Array response detected');
+              return old.filter((task: Task) => task.id !== deletedId);
+            }
+            console.log('[useDeleteTask] No valid data format');
+            return old;
           }
-          // Handle array response (legacy)
-          if (Array.isArray(old)) {
-            return old.filter((task: Task) => task.id !== deletedId);
-          }
-          return old;
-        }
-      );
+        );
 
-      return { previousLists };
+        return { previousLists };
+      } catch (error) {
+        console.error('[useDeleteTask] onMutate error:', error);
+        throw error;
+      }
     },
     // On error: rollback optimistic update
     onError: (err, deletedId, context) => {
+      console.error('[useDeleteTask] onError:', err);
       if (context?.previousLists) {
         context.previousLists.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
@@ -179,9 +195,16 @@ export function useDeleteTask() {
       }
     },
     // On success: ensure task is removed from cache
-    onSuccess: (_, deletedId) => {
-      queryClient.removeQueries({ queryKey: taskKeys.detail(deletedId) });
-      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
+    onSuccess: (data, deletedId) => {
+      console.log('[useDeleteTask] onSuccess - Task deleted:', deletedId, 'Response data:', data);
+      try {
+        queryClient.removeQueries({ queryKey: taskKeys.detail(deletedId) });
+        queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
+        console.log('[useDeleteTask] onSuccess completed successfully');
+      } catch (error) {
+        console.error('[useDeleteTask] onSuccess error:', error);
+        throw error;
+      }
     },
   });
 }

@@ -49,12 +49,20 @@ export function TaskBoard({
     }
 
     try {
+      console.log('[TaskBoard] Deleting task:', taskId);
       await deleteTask.mutateAsync(taskId);
+      console.log('[TaskBoard] Task deleted successfully');
       toast({
         title: 'Success',
         description: 'Task deleted successfully',
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[TaskBoard] Delete task error:', error);
+      console.error('[TaskBoard] Error details:', {
+        message: error.message,
+        response: error.response,
+        stack: error.stack,
+      });
       toast({
         title: 'Error',
         description: 'Failed to delete task',
