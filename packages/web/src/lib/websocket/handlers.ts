@@ -14,13 +14,24 @@ export function createMessageHandlers(context: MessageHandlerContext) {
     'entry:created': async (message: WebSocketMessage<Entry>) => {
       console.log('[WS Handler] Entry created:', message.data);
 
-      // Invalidate ALL entry list queries (matches ['entries', 'list', ...])
-      await queryClient.invalidateQueries({
-        queryKey: ['entries', 'list'],
-      });
+      const newEntry = message.data;
+
+      // Immediately add new entry to ALL entry list caches
+      queryClient.setQueriesData(
+        { queryKey: ['entries', 'list'] },
+        (oldData: Entry[] | undefined) => {
+          console.log('[WS Handler] Adding entry to cache, oldData:', oldData);
+          if (!oldData || !Array.isArray(oldData)) {
+            console.log('[WS Handler] No existing data, creating new array with entry');
+            return [newEntry];
+          }
+          console.log('[WS Handler] Prepending entry to existing array');
+          return [newEntry, ...oldData];
+        }
+      );
 
       // If entry has a task_id, invalidate that task's queries
-      if (message.data.task_id) {
+      if (newEntry.task_id) {
         await queryClient.invalidateQueries({
           queryKey: ['tasks', 'list'],
         });
