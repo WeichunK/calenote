@@ -27,6 +27,7 @@ export function CalendarView() {
   const { viewingMonth, goToToday, goToPrevMonth, goToNextMonth } = useCalendar();
   const [dialog, setDialog] = useState<DialogState>({ type: 'closed' });
   const [viewType, setViewType] = useState<CalendarViewType>('month');
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
 
   // Fetch calendars and auto-select default
   useCalendars();
@@ -76,10 +77,21 @@ export function CalendarView() {
   );
   const tasks = tasksResponse?.tasks || [];
 
+  // Filter entries by selected tasks
+  const filteredEntries = useMemo(() => {
+    if (!entries) return [];
+    if (selectedTaskIds.size === 0) return entries;
+
+    // Show entries from selected tasks + entries without a task
+    return entries.filter(entry =>
+      !entry.task_id || selectedTaskIds.has(entry.task_id)
+    );
+  }, [entries, selectedTaskIds]);
+
   // Group entries by date for DayEntriesModal
   const entriesByDate = useMemo(
-    () => groupEntriesByDate(entries || []),
-    [entries]
+    () => groupEntriesByDate(filteredEntries),
+    [filteredEntries]
   );
 
   const handleDateClick = useCallback((date: Date) => {
@@ -121,13 +133,16 @@ export function CalendarView() {
         onToday={goToToday}
         viewType={viewType}
         onViewTypeChange={setViewType}
+        tasks={tasks}
+        selectedTaskIds={selectedTaskIds}
+        onTaskFilterChange={setSelectedTaskIds}
       />
 
       {/* Render different views based on viewType */}
       {viewType === 'month' && (
         <CalendarGrid
           month={viewingMonth}
-          entries={entries || []}
+          entries={filteredEntries}
           tasks={tasks}
           onDateClick={handleDateClick}
           onEntryClick={handleEntryClick}
@@ -140,7 +155,7 @@ export function CalendarView() {
       {viewType === 'week' && (
         <WeekView
           week={viewingMonth}
-          entries={entries || []}
+          entries={filteredEntries}
           tasks={tasks}
           onTimeSlotClick={handleTimeSlotClick}
           onEntryClick={handleEntryClick}
@@ -151,7 +166,7 @@ export function CalendarView() {
       {viewType === 'day' && (
         <DayView
           day={viewingMonth}
-          entries={entries || []}
+          entries={filteredEntries}
           tasks={tasks}
           onTimeSlotClick={handleTimeSlotClick}
           onEntryClick={handleEntryClick}

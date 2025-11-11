@@ -1,7 +1,9 @@
 import { ChevronLeft, ChevronRight, Calendar, CalendarDays, CalendarClock } from 'lucide-react';
+import type { Task } from '@calenote/shared';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatMonthYear } from '@/lib/utils/calendar';
+import { TaskFilter } from './TaskFilter';
 
 export type CalendarViewType = 'month' | 'week' | 'day';
 
@@ -12,6 +14,9 @@ interface CalendarHeaderProps {
   onToday: () => void;
   viewType?: CalendarViewType;
   onViewTypeChange?: (viewType: CalendarViewType) => void;
+  tasks?: Task[];
+  selectedTaskIds?: Set<string>;
+  onTaskFilterChange?: (taskIds: Set<string>) => void;
 }
 
 export function CalendarHeader({
@@ -21,6 +26,9 @@ export function CalendarHeader({
   onToday,
   viewType = 'month',
   onViewTypeChange,
+  tasks = [],
+  selectedTaskIds = new Set(),
+  onTaskFilterChange,
 }: CalendarHeaderProps) {
   return (
     <div className="flex flex-col gap-3 p-4 border-b">
@@ -57,6 +65,15 @@ export function CalendarHeader({
                 </TabsTrigger>
               </TabsList>
             </Tabs>
+          )}
+
+          {/* Task Filter */}
+          {onTaskFilterChange && tasks.length > 0 && (
+            <TaskFilter
+              tasks={tasks}
+              selectedTaskIds={selectedTaskIds}
+              onSelectionChange={onTaskFilterChange}
+            />
           )}
 
           <Button variant="outline" onClick={onToday}>
