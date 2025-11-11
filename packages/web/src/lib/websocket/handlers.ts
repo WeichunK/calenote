@@ -43,7 +43,7 @@ export function createMessageHandlers(context: MessageHandlerContext) {
 
       const entry = message.data;
 
-      // Optimistically update ALL entry list caches
+      // Step 1: Immediately update entry in ALL list caches for instant visual feedback
       queryClient.setQueriesData(
         { queryKey: ['entries', 'list'] },
         (oldData: Entry[] | undefined) => {
@@ -52,13 +52,20 @@ export function createMessageHandlers(context: MessageHandlerContext) {
         }
       );
 
-      // Also update individual entry query if it exists
+      // Step 2: Update individual entry query
       queryClient.setQueryData(['entries', 'detail', entry.id], entry);
 
-      // If entry moved between tasks, invalidate tasks
+      // Step 3: Invalidate to trigger refetch (handles date/filter changes)
       await queryClient.invalidateQueries({
-        queryKey: ['tasks', 'list'],
+        queryKey: ['entries', 'list'],
       });
+
+      // If entry moved between tasks, invalidate tasks
+      if (entry.task_id) {
+        await queryClient.invalidateQueries({
+          queryKey: ['tasks', 'list'],
+        });
+      }
     },
 
     'entry:deleted': async (message: WebSocketMessage<{ id: string; calendar_id: string }>) => {
@@ -89,18 +96,17 @@ export function createMessageHandlers(context: MessageHandlerContext) {
 
       const entry = message.data;
 
-      // Update entry in ALL list caches
+      // Update entry in ALL list caches with full entry data
       queryClient.setQueriesData(
         { queryKey: ['entries', 'list'] },
         (oldData: Entry[] | undefined) => {
           if (!oldData) return oldData;
-          return oldData.map(e =>
-            e.id === entry.id
-              ? { ...e, is_completed: entry.is_completed, completed_at: entry.completed_at }
-              : e
-          );
+          return oldData.map(e => e.id === entry.id ? entry : e);
         }
       );
+
+      // Update individual entry query
+      queryClient.setQueryData(['entries', 'detail', entry.id], entry);
 
       // Update task progress if entry belongs to a task
       if (entry.task_id) {

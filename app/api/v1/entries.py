@@ -211,19 +211,16 @@ async def update_entry(
         obj_in=entry_update,
         last_modified_by=current_user.id
     )
-    
-    # WebSocket 廣播
+
+    # WebSocket 廣播 - 發送完整的 Entry 對象
     await manager.broadcast_to_calendar(
         calendar_id=entry.calendar_id,
         message={
             "type": "entry:updated",
-            "data": {
-                "id": str(entry_id),
-                "changes": entry_update.model_dump(exclude_unset=True)
-            }
+            "data": EntryInDB.model_validate(updated_entry).model_dump(mode="json")
         }
     )
-    
+
     return updated_entry
 
 
@@ -284,19 +281,16 @@ async def toggle_complete(
         is_completed=complete_data.is_completed,
         user_id=current_user.id
     )
-    
-    # WebSocket 廣播
+
+    # WebSocket 廣播 - 發送完整的 Entry 對象
     await manager.broadcast_to_calendar(
         calendar_id=entry.calendar_id,
         message={
             "type": "entry:completed",
-            "data": {
-                "id": str(entry_id),
-                "is_completed": complete_data.is_completed
-            }
+            "data": EntryInDB.model_validate(entry).model_dump(mode="json")
         }
     )
-    
+
     return entry
 
 
