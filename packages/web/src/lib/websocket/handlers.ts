@@ -14,15 +14,15 @@ export function createMessageHandlers(context: MessageHandlerContext) {
     'entry:created': async (message: WebSocketMessage<Entry>) => {
       console.log('[WS Handler] Entry created:', message.data);
 
-      // Invalidate entries list queries to refetch with new entry
+      // Invalidate ALL entry list queries (matches ['entries', 'list', ...])
       await queryClient.invalidateQueries({
-        queryKey: ['entries', calendarId],
+        queryKey: ['entries', 'list'],
       });
 
       // If entry has a task_id, invalidate that task's queries
       if (message.data.task_id) {
         await queryClient.invalidateQueries({
-          queryKey: ['tasks', calendarId, message.data.task_id],
+          queryKey: ['tasks', 'list'],
         });
       }
     },
@@ -32,9 +32,9 @@ export function createMessageHandlers(context: MessageHandlerContext) {
 
       const entry = message.data;
 
-      // Optimistically update cache (faster than invalidation)
+      // Optimistically update ALL entry list caches
       queryClient.setQueriesData(
-        { queryKey: ['entries', calendarId] },
+        { queryKey: ['entries', 'list'] },
         (oldData: Entry[] | undefined) => {
           if (!oldData) return oldData;
           return oldData.map(e => e.id === entry.id ? entry : e);
@@ -42,11 +42,11 @@ export function createMessageHandlers(context: MessageHandlerContext) {
       );
 
       // Also update individual entry query if it exists
-      queryClient.setQueryData(['entries', entry.id], entry);
+      queryClient.setQueryData(['entries', 'detail', entry.id], entry);
 
-      // If entry moved between tasks, invalidate both tasks
+      // If entry moved between tasks, invalidate tasks
       await queryClient.invalidateQueries({
-        queryKey: ['tasks', calendarId],
+        queryKey: ['tasks', 'list'],
       });
     },
 
@@ -55,9 +55,9 @@ export function createMessageHandlers(context: MessageHandlerContext) {
 
       const { id } = message.data;
 
-      // Remove from cache
+      // Remove from ALL entry list caches
       queryClient.setQueriesData(
-        { queryKey: ['entries', calendarId] },
+        { queryKey: ['entries', 'list'] },
         (oldData: Entry[] | undefined) => {
           if (!oldData) return oldData;
           return oldData.filter(e => e.id !== id);
@@ -65,11 +65,11 @@ export function createMessageHandlers(context: MessageHandlerContext) {
       );
 
       // Remove individual entry query
-      queryClient.removeQueries({ queryKey: ['entries', id] });
+      queryClient.removeQueries({ queryKey: ['entries', 'detail', id] });
 
       // Invalidate tasks (in case entry was in a task)
       await queryClient.invalidateQueries({
-        queryKey: ['tasks', calendarId],
+        queryKey: ['tasks', 'list'],
       });
     },
 
@@ -78,9 +78,9 @@ export function createMessageHandlers(context: MessageHandlerContext) {
 
       const entry = message.data;
 
-      // Update entry in cache
+      // Update entry in ALL list caches
       queryClient.setQueriesData(
-        { queryKey: ['entries', calendarId] },
+        { queryKey: ['entries', 'list'] },
         (oldData: Entry[] | undefined) => {
           if (!oldData) return oldData;
           return oldData.map(e =>
@@ -94,7 +94,7 @@ export function createMessageHandlers(context: MessageHandlerContext) {
       // Update task progress if entry belongs to a task
       if (entry.task_id) {
         await queryClient.invalidateQueries({
-          queryKey: ['tasks', calendarId, entry.task_id],
+          queryKey: ['tasks', 'list'],
         });
       }
     },
@@ -102,8 +102,9 @@ export function createMessageHandlers(context: MessageHandlerContext) {
     'task:created': async (message: WebSocketMessage<Task>) => {
       console.log('[WS Handler] Task created:', message.data);
 
+      // Invalidate ALL task list queries
       await queryClient.invalidateQueries({
-        queryKey: ['tasks', calendarId],
+        queryKey: ['tasks', 'list'],
       });
     },
 
@@ -112,16 +113,27 @@ export function createMessageHandlers(context: MessageHandlerContext) {
 
       const task = message.data;
 
-      // Update in cache
+      // Update in ALL task list caches (handles paginated response)
       queryClient.setQueriesData(
-        { queryKey: ['tasks', calendarId] },
-        (oldData: Task[] | undefined) => {
-          if (!oldData) return oldData;
-          return oldData.map(t => t.id === task.id ? task : t);
+        { queryKey: ['tasks', 'list'] },
+        (oldData: any) => {
+          // Handle paginated response {tasks: Task[], total: number}
+          if (oldData && typeof oldData === 'object' && 'tasks' in oldData) {
+            return {
+              ...oldData,
+              tasks: oldData.tasks.map((t: Task) => t.id === task.id ? task : t),
+            };
+          }
+          // Handle array response
+          if (Array.isArray(oldData)) {
+            return oldData.map((t: Task) => t.id === task.id ? task : t);
+          }
+          return oldData;
         }
       );
 
-      queryClient.setQueryData(['tasks', calendarId, task.id], task);
+      // Update detail cache
+      queryClient.setQueryData(['tasks', 'detail', task.id], task);
     },
 
     'task:deleted': async (message: WebSocketMessage<{ id: string; calendar_id: string }>) => {
@@ -129,15 +141,28 @@ export function createMessageHandlers(context: MessageHandlerContext) {
 
       const { id } = message.data;
 
+      // Remove from ALL task list caches (handles paginated response)
       queryClient.setQueriesData(
-        { queryKey: ['tasks', calendarId] },
-        (oldData: Task[] | undefined) => {
-          if (!oldData) return oldData;
-          return oldData.filter(t => t.id !== id);
+        { queryKey: ['tasks', 'list'] },
+        (oldData: any) => {
+          // Handle paginated response {tasks: Task[], total: number}
+          if (oldData && typeof oldData === 'object' && 'tasks' in oldData) {
+            return {
+              ...oldData,
+              tasks: oldData.tasks.filter((t: Task) => t.id !== id),
+              total: oldData.total - 1,
+            };
+          }
+          // Handle array response
+          if (Array.isArray(oldData)) {
+            return oldData.filter((t: Task) => t.id !== id);
+          }
+          return oldData;
         }
       );
 
-      queryClient.removeQueries({ queryKey: ['tasks', calendarId, id] });
+      // Remove detail cache
+      queryClient.removeQueries({ queryKey: ['tasks', 'detail', id] });
     },
 
     'connection:established': (message: WebSocketMessage) => {
