@@ -221,6 +221,7 @@ export default function EntriesPage() {
       ) : (
         <EntriesList
           entries={filteredAndSortedEntries}
+          tasks={tasks}
           onEntryClick={handleEntryClick}
           onAddToTask={handleAddToTask}
           onRemoveFromTask={handleRemoveFromTask}

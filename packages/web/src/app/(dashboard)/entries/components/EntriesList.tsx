@@ -2,8 +2,8 @@
 
 import { useMemo, memo, useCallback } from 'react';
 import { format, parseISO, isToday, isThisWeek, isPast, isFuture } from 'date-fns';
-import { MoreVertical, Plus, Unlink, Edit } from 'lucide-react';
-import type { Entry } from '@calenote/shared';
+import { MoreVertical, Plus, Unlink, Edit, CheckSquare } from 'lucide-react';
+import type { Entry, Task } from '@calenote/shared';
 import { cn } from '@/lib/utils';
 import { useToggleEntryComplete } from '@/lib/hooks/useEntries';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,6 +19,7 @@ import { TYPOGRAPHY, SPACING, INTERACTIVE, VISUAL } from '@/lib/design/tokens';
 
 interface EntriesListProps {
   entries: Entry[];
+  tasks?: Task[];
   onEntryClick: (entry: Entry) => void;
   onAddToTask?: (entry: Entry) => void;
   onRemoveFromTask?: (entry: Entry) => void;
@@ -54,13 +55,14 @@ function getPriorityColor(priority?: number): string {
 // Memoized Entry Item Component
 interface EntryItemProps {
   entry: Entry;
+  task?: Task;
   onEntryClick: (entry: Entry) => void;
   onToggleComplete: (entry: Entry, e: React.MouseEvent) => Promise<void>;
   onAddToTask?: (entry: Entry) => void;
   onRemoveFromTask?: (entry: Entry) => void;
 }
 
-const EntryItem = memo(function EntryItem({ entry, onEntryClick, onToggleComplete, onAddToTask, onRemoveFromTask }: EntryItemProps) {
+const EntryItem = memo(function EntryItem({ entry, task, onEntryClick, onToggleComplete, onAddToTask, onRemoveFromTask }: EntryItemProps) {
   const icon = getEntryTypeIcon(entry.entry_type);
   const time = entry.timestamp && !entry.is_all_day
     ? format(parseISO(entry.timestamp), 'MMM d, yyyy h:mm a')
@@ -156,6 +158,20 @@ const EntryItem = memo(function EntryItem({ entry, onEntryClick, onToggleComplet
                   {entry.priority === 1 && 'Low'}
                 </Badge>
               )}
+              {task && (
+                <Badge
+                  variant="outline"
+                  className="text-xs flex items-center gap-1"
+                  style={{
+                    borderColor: task.color || undefined,
+                    color: task.color || undefined,
+                  }}
+                >
+                  <CheckSquare className="h-3 w-3" />
+                  {task.icon && <span>{task.icon}</span>}
+                  <span className="truncate max-w-[120px]">{task.title}</span>
+                </Badge>
+              )}
             </div>
 
             {/* Title */}
@@ -245,8 +261,17 @@ function getDateGroupLabel(entry: Entry): string {
   return format(date, 'MMMM yyyy');
 }
 
-export function EntriesList({ entries, onEntryClick, onAddToTask, onRemoveFromTask, groupBy = 'none' }: EntriesListProps) {
+export function EntriesList({ entries, tasks = [], onEntryClick, onAddToTask, onRemoveFromTask, groupBy = 'none' }: EntriesListProps) {
   const toggleComplete = useToggleEntryComplete();
+
+  // Create task lookup map
+  const taskMap = useMemo(() => {
+    const map = new Map<string, Task>();
+    tasks.forEach(task => {
+      map.set(task.id, task);
+    });
+    return map;
+  }, [tasks]);
 
   const groupedEntries = useMemo(() => {
     if (groupBy === 'none') {
@@ -344,6 +369,7 @@ export function EntriesList({ entries, onEntryClick, onAddToTask, onRemoveFromTa
                 <EntryItem
                   key={entry.id}
                   entry={entry}
+                  task={entry.task_id ? taskMap.get(entry.task_id) : undefined}
                   onEntryClick={onEntryClick}
                   onToggleComplete={handleToggleComplete}
                   onAddToTask={onAddToTask}
