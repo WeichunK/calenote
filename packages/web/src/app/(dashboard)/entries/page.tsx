@@ -3,15 +3,19 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { useEntries } from '@/lib/hooks/useEntries';
+import { useEntries, useAddEntryToTask, useRemoveEntryFromTask } from '@/lib/hooks/useEntries';
+import { useTasks } from '@/lib/hooks/useTasks';
 import { useCalendars } from '@/lib/hooks/useCalendars';
+import { useToast } from '@/hooks/use-toast';
 import type { Entry } from '@calenote/shared';
 import { FilterSortBar, type FilterSortState } from './components/FilterSortBar';
 import { EntriesList } from './components/EntriesList';
 import { EntryDialog } from '../calendar/components/EntryDialog';
+import { AddToTaskDialog } from './components/AddToTaskDialog';
 
 export default function EntriesPage() {
   const { currentCalendar } = useCalendars();
+  const { toast } = useToast();
 
   // WebSocket connection is now managed at app level via WebSocketProvider
 
@@ -29,10 +33,24 @@ export default function EntriesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<Entry | undefined>();
 
+  // Task selection dialog state
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [entryForTask, setEntryForTask] = useState<Entry | undefined>();
+
   // Fetch all entries for current calendar
   const { data: allEntries, isLoading, error } = useEntries(
     currentCalendar ? { calendar_id: currentCalendar.id } : undefined
   );
+
+  // Fetch tasks for task selection
+  const { data: tasksResponse } = useTasks(
+    currentCalendar ? { calendar_id: currentCalendar.id } : undefined
+  );
+  const tasks = tasksResponse?.tasks || [];
+
+  // Mutations
+  const addToTask = useAddEntryToTask();
+  const removeFromTask = useRemoveEntryFromTask();
 
   // Client-side filtering and sorting
   const filteredAndSortedEntries = useMemo(() => {
@@ -112,6 +130,51 @@ export default function EntriesPage() {
     setSelectedEntry(undefined);
   };
 
+  const handleAddToTask = (entry: Entry) => {
+    setEntryForTask(entry);
+    setTaskDialogOpen(true);
+  };
+
+  const handleSelectTask = async (taskId: string) => {
+    if (!entryForTask) return;
+
+    try {
+      await addToTask.mutateAsync({ id: entryForTask.id, taskId });
+      toast({
+        title: 'Success',
+        description: 'Entry added to task successfully',
+      });
+      setTaskDialogOpen(false);
+      setEntryForTask(undefined);
+    } catch (error) {
+      console.error('[EntriesPage] Add to task error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add entry to task',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRemoveFromTask = async (entry: Entry) => {
+    if (!entry.task_id) return;
+
+    try {
+      await removeFromTask.mutateAsync(entry.id);
+      toast({
+        title: 'Success',
+        description: 'Entry removed from task successfully',
+      });
+    } catch (error) {
+      console.error('[EntriesPage] Remove from task error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to remove entry from task',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (!currentCalendar) {
     return (
       <div className="space-y-6">
@@ -159,6 +222,8 @@ export default function EntriesPage() {
         <EntriesList
           entries={filteredAndSortedEntries}
           onEntryClick={handleEntryClick}
+          onAddToTask={handleAddToTask}
+          onRemoveFromTask={handleRemoveFromTask}
           groupBy={filters.hasTimestamp === 'all' ? 'date' : 'none'}
         />
       )}
@@ -172,6 +237,15 @@ export default function EntriesPage() {
           calendarId={currentCalendar.id}
         />
       )}
+
+      {/* Add to Task Dialog */}
+      <AddToTaskDialog
+        open={taskDialogOpen}
+        onOpenChange={setTaskDialogOpen}
+        tasks={tasks}
+        onSelectTask={handleSelectTask}
+        isLoading={addToTask.isPending}
+      />
     </div>
   );
 }

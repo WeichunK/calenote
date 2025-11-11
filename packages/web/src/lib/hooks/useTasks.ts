@@ -52,15 +52,17 @@ export function useCreateTask() {
         id: `temp-${Date.now()}`,
         calendar_id: newTask.calendar_id,
         title: newTask.title,
-        description: newTask.description || '',
+        description: newTask.description,
         status: 'active',
         due_date: newTask.due_date,
         total_entries: 0,
         completed_entries: 0,
-        created_by: 'current-user',
+        completion_percentage: 0,
+        color: newTask.color,
+        icon: newTask.icon,
+        position: 0,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        last_modified_by: undefined,
       };
 
       // Optimistically update all matching queries

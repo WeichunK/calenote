@@ -2,16 +2,26 @@
 
 import { useMemo, memo, useCallback } from 'react';
 import { format, parseISO, isToday, isThisWeek, isPast, isFuture } from 'date-fns';
+import { MoreVertical, Plus, Unlink, Edit } from 'lucide-react';
 import type { Entry } from '@calenote/shared';
 import { cn } from '@/lib/utils';
 import { useToggleEntryComplete } from '@/lib/hooks/useEntries';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { TYPOGRAPHY, SPACING, INTERACTIVE, VISUAL } from '@/lib/design/tokens';
 
 interface EntriesListProps {
   entries: Entry[];
   onEntryClick: (entry: Entry) => void;
+  onAddToTask?: (entry: Entry) => void;
+  onRemoveFromTask?: (entry: Entry) => void;
   groupBy?: 'none' | 'date' | 'status';
 }
 
@@ -46,15 +56,26 @@ interface EntryItemProps {
   entry: Entry;
   onEntryClick: (entry: Entry) => void;
   onToggleComplete: (entry: Entry, e: React.MouseEvent) => Promise<void>;
+  onAddToTask?: (entry: Entry) => void;
+  onRemoveFromTask?: (entry: Entry) => void;
 }
 
-const EntryItem = memo(function EntryItem({ entry, onEntryClick, onToggleComplete }: EntryItemProps) {
+const EntryItem = memo(function EntryItem({ entry, onEntryClick, onToggleComplete, onAddToTask, onRemoveFromTask }: EntryItemProps) {
   const icon = getEntryTypeIcon(entry.entry_type);
   const time = entry.timestamp && !entry.is_all_day
     ? format(parseISO(entry.timestamp), 'MMM d, yyyy h:mm a')
     : entry.timestamp
     ? format(parseISO(entry.timestamp), 'MMM d, yyyy')
     : null;
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger if clicking on dropdown or checkbox
+    if ((e.target as HTMLElement).closest('[data-dropdown-trigger]') ||
+        (e.target as HTMLElement).closest('[data-testid="entry-checkbox"]')) {
+      return;
+    }
+    onEntryClick(entry);
+  };
 
   return (
     <Card
@@ -69,7 +90,7 @@ const EntryItem = memo(function EntryItem({ entry, onEntryClick, onToggleComplet
       style={{
         backgroundColor: entry.color ? `${entry.color}08` : undefined,
       }}
-      onClick={() => onEntryClick(entry)}
+      onClick={handleCardClick}
     >
       <CardContent className={SPACING.card.padding}>
         <div className={cn('flex items-start', SPACING.inline.gap)}>
@@ -169,6 +190,40 @@ const EntryItem = memo(function EntryItem({ entry, onEntryClick, onToggleComplet
               </div>
             )}
           </div>
+
+          {/* Actions Dropdown */}
+          {(onAddToTask || onRemoveFromTask) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 flex-shrink-0"
+                  data-dropdown-trigger
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onEntryClick(entry)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Entry
+                </DropdownMenuItem>
+                {onAddToTask && !entry.task_id && (
+                  <DropdownMenuItem onClick={() => onAddToTask(entry)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add to Task
+                  </DropdownMenuItem>
+                )}
+                {onRemoveFromTask && entry.task_id && (
+                  <DropdownMenuItem onClick={() => onRemoveFromTask(entry)}>
+                    <Unlink className="h-4 w-4 mr-2" />
+                    Remove from Task
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -190,7 +245,7 @@ function getDateGroupLabel(entry: Entry): string {
   return format(date, 'MMMM yyyy');
 }
 
-export function EntriesList({ entries, onEntryClick, groupBy = 'none' }: EntriesListProps) {
+export function EntriesList({ entries, onEntryClick, onAddToTask, onRemoveFromTask, groupBy = 'none' }: EntriesListProps) {
   const toggleComplete = useToggleEntryComplete();
 
   const groupedEntries = useMemo(() => {
@@ -291,6 +346,8 @@ export function EntriesList({ entries, onEntryClick, groupBy = 'none' }: Entries
                   entry={entry}
                   onEntryClick={onEntryClick}
                   onToggleComplete={handleToggleComplete}
+                  onAddToTask={onAddToTask}
+                  onRemoveFromTask={onRemoveFromTask}
                 />
               ))}
             </div>

@@ -316,13 +316,15 @@ export const reportWebVitals = (
   }) => void
 ): void => {
   if (onPerfEntry && onPerfEntry instanceof Function) {
-    import('web-vitals').then(({ onCLS, onFID, onFCP, onLCP, onTTFB }) => {
-      onCLS(onPerfEntry);
-      onFID(onPerfEntry);
-      onFCP(onPerfEntry);
-      onLCP(onPerfEntry);
-      onTTFB(onPerfEntry);
-    });
+    // TODO: Install web-vitals package to enable performance monitoring
+    // import('web-vitals').then(({ onCLS, onFID, onFCP, onLCP, onTTFB }) => {
+    //   onCLS(onPerfEntry);
+    //   onFID(onPerfEntry);
+    //   onFCP(onPerfEntry);
+    //   onLCP(onPerfEntry);
+    //   onTTFB(onPerfEntry);
+    // });
+    console.log('Web vitals monitoring not configured');
   }
 };
 
