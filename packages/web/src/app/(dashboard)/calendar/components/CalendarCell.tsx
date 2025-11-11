@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import type { Entry } from '@calenote/shared';
+import type { Entry, Task } from '@calenote/shared';
 import { cn } from '@/lib/utils';
 import { EntryBadge } from './EntryBadge';
 
@@ -8,6 +8,7 @@ interface CalendarCellProps {
   isCurrentMonth: boolean;
   isToday: boolean;
   entries: Entry[];
+  taskMap: Map<string, Task>;
   onDateClick: (date: Date) => void;
   onEntryClick: (entry: Entry) => void;
   onShowMore?: (date: Date) => void;
@@ -18,6 +19,7 @@ export const CalendarCell = memo(function CalendarCell({
   isCurrentMonth,
   isToday,
   entries,
+  taskMap,
   onDateClick,
   onEntryClick,
   onShowMore,
@@ -53,18 +55,21 @@ export const CalendarCell = memo(function CalendarCell({
 
       {/* Entries */}
       <div className="flex-1 overflow-hidden space-y-0.5">
-        {displayEntries.map((entry) => (
-          <div key={entry.id}>
-            {/* Desktop */}
-            <div className="hidden sm:block">
-              <EntryBadge entry={entry} onClick={onEntryClick} />
+        {displayEntries.map((entry) => {
+          const task = entry.task_id ? taskMap.get(entry.task_id) : undefined;
+          return (
+            <div key={entry.id}>
+              {/* Desktop */}
+              <div className="hidden sm:block">
+                <EntryBadge entry={entry} task={task} onClick={onEntryClick} />
+              </div>
+              {/* Mobile - compact mode */}
+              <div className="sm:hidden">
+                <EntryBadge entry={entry} task={task} onClick={onEntryClick} compact />
+              </div>
             </div>
-            {/* Mobile - compact mode */}
-            <div className="sm:hidden">
-              <EntryBadge entry={entry} onClick={onEntryClick} compact />
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         {remaining > 0 && onShowMore && (
           <button

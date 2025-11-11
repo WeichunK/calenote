@@ -6,6 +6,7 @@ import type { Entry } from '@calenote/shared';
 import { useCalendar } from '@/lib/hooks/useCalendar';
 import { useCalendars } from '@/lib/hooks/useCalendars';
 import { useEntries } from '@/lib/hooks/useEntries';
+import { useTasks } from '@/lib/hooks/useTasks';
 import { useCalendarStore } from '@/lib/stores/calendarStore';
 import { formatDate, startOfMonth, endOfMonth, groupEntriesByDate } from '@/lib/utils/calendar';
 import { CalendarHeader, type CalendarViewType } from './CalendarHeader';
@@ -69,6 +70,12 @@ export function CalendarView() {
       : undefined
   );
 
+  // Fetch tasks for task badges
+  const { data: tasksResponse } = useTasks(
+    currentCalendarId ? { calendar_id: currentCalendarId } : undefined
+  );
+  const tasks = tasksResponse?.tasks || [];
+
   // Group entries by date for DayEntriesModal
   const entriesByDate = useMemo(
     () => groupEntriesByDate(entries || []),
@@ -121,6 +128,7 @@ export function CalendarView() {
         <CalendarGrid
           month={viewingMonth}
           entries={entries || []}
+          tasks={tasks}
           onDateClick={handleDateClick}
           onEntryClick={handleEntryClick}
           onShowMore={handleShowMore}
@@ -133,6 +141,7 @@ export function CalendarView() {
         <WeekView
           week={viewingMonth}
           entries={entries || []}
+          tasks={tasks}
           onTimeSlotClick={handleTimeSlotClick}
           onEntryClick={handleEntryClick}
           isLoading={isLoading}
@@ -143,6 +152,7 @@ export function CalendarView() {
         <DayView
           day={viewingMonth}
           entries={entries || []}
+          tasks={tasks}
           onTimeSlotClick={handleTimeSlotClick}
           onEntryClick={handleEntryClick}
           isLoading={isLoading}

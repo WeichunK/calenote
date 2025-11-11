@@ -28,6 +28,11 @@ interface WeekViewProps {
   entries: Entry[];
 
   /**
+   * Tasks for task badges (optional)
+   */
+  tasks?: any[];
+
+  /**
    * Callback when a time slot is clicked
    */
   onTimeSlotClick?: (date: Date, hour: number) => void;

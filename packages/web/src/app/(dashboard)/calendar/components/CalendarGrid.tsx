@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { Entry } from '@calenote/shared';
+import type { Entry, Task } from '@calenote/shared';
 import { getMonthDays, groupEntriesByDate, formatDate, isSameMonth, isToday, WEEKDAYS } from '@/lib/utils/calendar';
 import { CalendarCell } from './CalendarCell';
 import { CalendarSkeleton } from '@/components/ui/skeleton';
@@ -9,6 +9,7 @@ import { AlertCircle, Calendar } from 'lucide-react';
 interface CalendarGridProps {
   month: Date;
   entries: Entry[];
+  tasks: Task[];
   onDateClick: (date: Date) => void;
   onEntryClick: (entry: Entry) => void;
   onShowMore?: (date: Date) => void;
@@ -19,6 +20,7 @@ interface CalendarGridProps {
 export function CalendarGrid({
   month,
   entries,
+  tasks,
   onDateClick,
   onEntryClick,
   onShowMore,
@@ -27,6 +29,15 @@ export function CalendarGrid({
 }: CalendarGridProps) {
   const days = useMemo(() => getMonthDays(month), [month]);
   const entriesByDate = useMemo(() => groupEntriesByDate(entries), [entries]);
+
+  // Create task lookup map
+  const taskMap = useMemo(() => {
+    const map = new Map<string, Task>();
+    tasks.forEach(task => {
+      map.set(task.id, task);
+    });
+    return map;
+  }, [tasks]);
 
   if (error) {
     return (
@@ -69,6 +80,7 @@ export function CalendarGrid({
               isCurrentMonth={isSameMonth(date, month)}
               isToday={isToday(date)}
               entries={entriesByDate[dateStr] || []}
+              taskMap={taskMap}
               onDateClick={onDateClick}
               onEntryClick={onEntryClick}
               onShowMore={onShowMore}
