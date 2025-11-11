@@ -148,12 +148,23 @@ export function useDeleteTask() {
       // Snapshot previous values
       const previousLists = queryClient.getQueriesData({ queryKey: taskKeys.lists() });
 
-      // Optimistically remove task from all matching queries
-      queryClient.setQueriesData<Task[]>(
+      // Optimistically remove task from all matching queries (handles paginated response)
+      queryClient.setQueriesData(
         { queryKey: taskKeys.lists() },
-        (old) => {
-          if (!old) return old;
-          return old.filter((task) => task.id !== deletedId);
+        (old: any) => {
+          // Handle paginated response {tasks: Task[], total: number}
+          if (old && typeof old === 'object' && 'tasks' in old) {
+            return {
+              ...old,
+              tasks: old.tasks.filter((task: Task) => task.id !== deletedId),
+              total: old.total - 1,
+            };
+          }
+          // Handle array response (legacy)
+          if (Array.isArray(old)) {
+            return old.filter((task: Task) => task.id !== deletedId);
+          }
+          return old;
         }
       );
 

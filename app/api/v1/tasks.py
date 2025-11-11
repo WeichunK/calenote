@@ -191,7 +191,17 @@ async def delete_task(
             detail="Task not found"
         )
 
+    # 刪除任務
     await task_crud.remove(db, id=task_id)
+
+    # WebSocket 廣播
+    await manager.broadcast_to_calendar(
+        calendar_id=task.calendar_id,
+        message={
+            "type": "task:deleted",
+            "data": {"id": str(task_id), "calendar_id": str(task.calendar_id)}
+        }
+    )
 
 
 @router.post("/{task_id}/complete", response_model=TaskResponse)
