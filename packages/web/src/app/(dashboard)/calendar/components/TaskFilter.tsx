@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Check, Filter, X } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Check, Filter, X, FileQuestion } from 'lucide-react';
 import type { Task } from '@calenote/shared';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,16 +12,21 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
+// Special ID for unassigned entries
+export const UNASSIGNED_TASK_ID = '__unassigned__';
+
 interface TaskFilterProps {
   tasks: Task[];
   selectedTaskIds: Set<string>;
+  unassignedCount: number;
   onSelectionChange: (taskIds: Set<string>) => void;
 }
 
-export function TaskFilter({ tasks, selectedTaskIds, onSelectionChange }: TaskFilterProps) {
+export function TaskFilter({ tasks, selectedTaskIds, unassignedCount, onSelectionChange }: TaskFilterProps) {
   const [open, setOpen] = useState(false);
 
   const activeTasks = tasks.filter((task) => task.status === 'active');
+  const hasUnassignedSelected = selectedTaskIds.has(UNASSIGNED_TASK_ID);
   const selectedCount = selectedTaskIds.size;
   const hasSelection = selectedCount > 0;
 
@@ -40,7 +45,8 @@ export function TaskFilter({ tasks, selectedTaskIds, onSelectionChange }: TaskFi
   };
 
   const selectAll = () => {
-    onSelectionChange(new Set(activeTasks.map(t => t.id)));
+    const allIds = [...activeTasks.map(t => t.id), UNASSIGNED_TASK_ID];
+    onSelectionChange(new Set(allIds));
   };
 
   return (
@@ -81,7 +87,7 @@ export function TaskFilter({ tasks, selectedTaskIds, onSelectionChange }: TaskFi
               size="sm"
               className="h-7 text-xs"
               onClick={selectAll}
-              disabled={selectedCount === activeTasks.length}
+              disabled={selectedCount === activeTasks.length + 1}
             >
               All
             </Button>
@@ -97,13 +103,47 @@ export function TaskFilter({ tasks, selectedTaskIds, onSelectionChange }: TaskFi
           </div>
         </div>
 
-        {activeTasks.length === 0 ? (
+        {activeTasks.length === 0 && unassignedCount === 0 ? (
           <div className="p-4 text-center text-sm text-muted-foreground">
-            No active tasks available
+            No tasks or entries available
           </div>
         ) : (
           <div className="max-h-[300px] overflow-y-auto p-2">
             <div className="space-y-1">
+              {/* Unassigned entries option */}
+              {unassignedCount > 0 && (
+                <button
+                  onClick={() => toggleTask(UNASSIGNED_TASK_ID)}
+                  className={cn(
+                    'w-full flex items-center gap-3 p-2 rounded-md text-sm transition-colors',
+                    'hover:bg-accent',
+                    hasUnassignedSelected && 'bg-accent/50'
+                  )}
+                >
+                  {/* Checkbox */}
+                  <div
+                    className={cn(
+                      'w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0',
+                      hasUnassignedSelected ? 'bg-primary border-primary' : 'border-muted-foreground'
+                    )}
+                  >
+                    {hasUnassignedSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                  </div>
+
+                  {/* Task info */}
+                  <div className="flex-1 flex items-center gap-2 min-w-0 border-l-2 border-muted pl-2">
+                    <FileQuestion className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                    <span className="truncate font-medium text-muted-foreground">Unassigned</span>
+                  </div>
+
+                  {/* Entry count */}
+                  <span className="text-xs text-muted-foreground flex-shrink-0">
+                    {unassignedCount} {unassignedCount === 1 ? 'entry' : 'entries'}
+                  </span>
+                </button>
+              )}
+
+              {/* Regular tasks */}
               {activeTasks.map((task) => {
                 const isSelected = selectedTaskIds.has(task.id);
                 return (

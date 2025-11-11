@@ -15,6 +15,7 @@ import { WeekView } from './WeekView';
 import { DayView } from './DayView';
 import { EntryDialog } from './EntryDialog';
 import { DayEntriesModal } from './DayEntriesModal';
+import { UNASSIGNED_TASK_ID } from './TaskFilter';
 
 // Unified dialog state - eliminates state explosion and race conditions
 type DialogState =
@@ -77,15 +78,26 @@ export function CalendarView() {
   );
   const tasks = tasksResponse?.tasks || [];
 
+  // Calculate unassigned entries count
+  const unassignedCount = useMemo(() => {
+    if (!entries) return 0;
+    return entries.filter(entry => !entry.task_id).length;
+  }, [entries]);
+
   // Filter entries by selected tasks
   const filteredEntries = useMemo(() => {
     if (!entries) return [];
     if (selectedTaskIds.size === 0) return entries;
 
-    // Show entries from selected tasks + entries without a task
-    return entries.filter(entry =>
-      !entry.task_id || selectedTaskIds.has(entry.task_id)
-    );
+    // Filter by selected tasks + unassigned (if selected)
+    return entries.filter(entry => {
+      if (!entry.task_id) {
+        // Unassigned entry - only show if UNASSIGNED_TASK_ID is selected
+        return selectedTaskIds.has(UNASSIGNED_TASK_ID);
+      }
+      // Regular entry - show if its task is selected
+      return selectedTaskIds.has(entry.task_id);
+    });
   }, [entries, selectedTaskIds]);
 
   // Group entries by date for DayEntriesModal
@@ -134,6 +146,7 @@ export function CalendarView() {
         viewType={viewType}
         onViewTypeChange={setViewType}
         tasks={tasks}
+        unassignedCount={unassignedCount}
         selectedTaskIds={selectedTaskIds}
         onTaskFilterChange={setSelectedTaskIds}
       />

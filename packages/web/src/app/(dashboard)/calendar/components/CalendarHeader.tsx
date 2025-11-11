@@ -15,6 +15,7 @@ interface CalendarHeaderProps {
   viewType?: CalendarViewType;
   onViewTypeChange?: (viewType: CalendarViewType) => void;
   tasks?: Task[];
+  unassignedCount?: number;
   selectedTaskIds?: Set<string>;
   onTaskFilterChange?: (taskIds: Set<string>) => void;
 }
@@ -27,6 +28,7 @@ export function CalendarHeader({
   viewType = 'month',
   onViewTypeChange,
   tasks = [],
+  unassignedCount = 0,
   selectedTaskIds = new Set(),
   onTaskFilterChange,
 }: CalendarHeaderProps) {
@@ -68,10 +70,11 @@ export function CalendarHeader({
           )}
 
           {/* Task Filter */}
-          {onTaskFilterChange && tasks.length > 0 && (
+          {onTaskFilterChange && (tasks.length > 0 || unassignedCount > 0) && (
             <TaskFilter
               tasks={tasks}
               selectedTaskIds={selectedTaskIds}
+              unassignedCount={unassignedCount}
               onSelectionChange={onTaskFilterChange}
             />
           )}
