@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { format } from 'date-fns';
-import type { Entry } from '@calenote/shared';
+import type { Entry, Task } from '@calenote/shared';
 import {
   Dialog,
   DialogContent,
@@ -11,16 +11,20 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { formatTime } from '@/lib/utils/calendar';
 import { parseISO } from 'date-fns';
 import { useToggleEntryComplete } from '@/lib/hooks/useEntries';
 import { cn } from '@/lib/utils';
+import { CheckSquare } from 'lucide-react';
+import { getPriorityDotColor, getPriorityBorderColor, getPriorityLabel } from '@/lib/utils/priority';
 
 interface DayEntriesModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   date: Date;
   entries: Entry[];
+  tasks?: Task[];
   onEntryClick: (entry: Entry) => void;
   onCreateEntry: () => void;
 }
@@ -38,24 +42,12 @@ function getEntryTypeIcon(type: string): string {
   }
 }
 
-function getPriorityColor(priority?: number): string {
-  switch (priority) {
-    case 3:
-      return 'border-l-red-500';
-    case 2:
-      return 'border-l-yellow-500';
-    case 1:
-      return 'border-l-green-500';
-    default:
-      return 'border-l-gray-300';
-  }
-}
-
 export function DayEntriesModal({
   open,
   onOpenChange,
   date,
   entries,
+  tasks = [],
   onEntryClick,
   onCreateEntry,
 }: DayEntriesModalProps) {
@@ -108,15 +100,16 @@ export function DayEntriesModal({
               const time = entry.timestamp && !entry.is_all_day
                 ? formatTime(parseISO(entry.timestamp))
                 : null;
+              const task = entry.task_id ? tasks.find(t => t.id === entry.task_id) : undefined;
 
               return (
                 <div
                   key={entry.id}
                   data-testid="modal-entry"
                   className={cn(
-                    'w-full text-left p-3 rounded-lg border-l-4 transition-colors',
-                    'hover:bg-accent hover:shadow-sm cursor-pointer',
-                    getPriorityColor(entry.priority),
+                    'w-full text-left p-4 rounded-lg border-l-4 transition-all',
+                    'hover:bg-accent hover:shadow-md cursor-pointer group',
+                    getPriorityBorderColor(entry.priority),
                     entry.is_completed && 'opacity-60'
                   )}
                   style={{
@@ -163,8 +156,24 @@ export function DayEntriesModal({
 
                     {/* Entry Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      {/* Header Row with metadata */}
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="text-lg">{icon}</span>
+
+                        {/* Priority Indicator */}
+                        {entry.priority && entry.priority > 0 && (
+                          <span className="flex items-center">
+                            <span
+                              className={cn(
+                                'w-2 h-2 rounded-full',
+                                getPriorityDotColor(entry.priority)
+                              )}
+                              aria-hidden="true"
+                            />
+                            <span className="sr-only">Priority: {getPriorityLabel(entry.priority)}</span>
+                          </span>
+                        )}
+
                         {time && (
                           <span className="text-sm font-medium text-muted-foreground">
                             {time}
@@ -175,20 +184,42 @@ export function DayEntriesModal({
                             All day
                           </span>
                         )}
+
+                        {/* Task Badge */}
+                        {task && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs flex items-center gap-1"
+                            style={{
+                              borderColor: task.color,
+                              color: task.color
+                            }}
+                          >
+                            <CheckSquare className="h-3 w-3" />
+                            {task.icon && <span>{task.icon}</span>}
+                            <span className="truncate max-w-[120px]">{task.title}</span>
+                          </Badge>
+                        )}
                       </div>
+
+                      {/* Title */}
                       <h4
                         className={cn(
-                          'font-medium',
+                          'font-semibold text-base mb-1',
                           entry.is_completed && 'line-through'
                         )}
                       >
                         {entry.title}
                       </h4>
+
+                      {/* Content Preview */}
                       {entry.content && (
                         <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                           {entry.content}
                         </p>
                       )}
+
+                      {/* Tags */}
                       {entry.tags && entry.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
                           {entry.tags.map((tag) => (
@@ -196,7 +227,7 @@ export function DayEntriesModal({
                               key={tag}
                               className="text-xs px-2 py-0.5 bg-secondary text-secondary-foreground rounded"
                             >
-                              {tag}
+                              #{tag}
                             </span>
                           ))}
                         </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { startOfWeek, endOfWeek, addWeeks, addDays } from 'date-fns';
+import { startOfWeek, endOfWeek, addWeeks, addDays, parseISO } from 'date-fns';
 import type { Entry } from '@calenote/shared';
 import { useCalendar } from '@/lib/hooks/useCalendar';
 import { useCalendars } from '@/lib/hooks/useCalendars';
@@ -100,15 +100,21 @@ export function CalendarView() {
     });
   }, [entries, selectedTaskIds]);
 
-  // Group entries by date for DayEntriesModal
-  const entriesByDate = useMemo(
-    () => groupEntriesByDate(filteredEntries),
-    [filteredEntries]
-  );
-
   const handleDateClick = useCallback((date: Date) => {
-    setDialog({ type: 'create', date });
-  }, []);
+    // Smart click behavior: if date has entries, show them; otherwise create new
+    const dateStr = formatDate(date);
+    const dateEntries = filteredEntries.filter(
+      e => e.timestamp && formatDate(parseISO(e.timestamp)) === dateStr
+    );
+
+    if (dateEntries.length === 0) {
+      // No entries - open create dialog directly
+      setDialog({ type: 'create', date });
+    } else {
+      // Has entries - show day list first
+      setDialog({ type: 'day-list', date, entries: dateEntries });
+    }
+  }, [filteredEntries]);
 
   const handleTimeSlotClick = useCallback((date: Date, hour: number) => {
     // Create entry with specific hour
@@ -122,9 +128,12 @@ export function CalendarView() {
   }, []);
 
   const handleShowMore = useCallback((date: Date) => {
-    const dateEntries = entriesByDate[formatDate(date)] || [];
+    const dateStr = formatDate(date);
+    const dateEntries = filteredEntries.filter(
+      e => e.timestamp && formatDate(parseISO(e.timestamp)) === dateStr
+    );
     setDialog({ type: 'day-list', date, entries: dateEntries });
-  }, [entriesByDate]);
+  }, [filteredEntries]);
 
   const handleDialogClose = useCallback(() => {
     setDialog({ type: 'closed' });
@@ -200,6 +209,7 @@ export function CalendarView() {
         onOpenChange={(open) => !open && handleDialogClose()}
         date={dialog.type === 'day-list' ? dialog.date : new Date()}
         entries={dialog.type === 'day-list' ? dialog.entries : []}
+        tasks={tasks}
         onEntryClick={handleEntryClick}
         onCreateEntry={handleCreateFromDayList}
       />
