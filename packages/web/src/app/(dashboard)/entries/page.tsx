@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useEntries, useAddEntryToTask, useRemoveEntryFromTask } from '@/lib/hooks/useEntries';
@@ -8,16 +8,35 @@ import { useTasks } from '@/lib/hooks/useTasks';
 import { useCalendars } from '@/lib/hooks/useCalendars';
 import { useToast } from '@/hooks/use-toast';
 import type { Entry } from '@calenote/shared';
-import { FilterSortBar, type FilterSortState } from './components/FilterSortBar';
+import { FilterSortBar, type FilterSortState, type ViewMode } from './components/FilterSortBar';
 import { EntriesList } from './components/EntriesList';
 import { EntryDialog } from '../calendar/components/EntryDialog';
 import { AddToTaskDialog } from './components/AddToTaskDialog';
+
+const ENTRIES_VIEW_MODE_KEY = 'entries-view-mode';
 
 export default function EntriesPage() {
   const { currentCalendar } = useCalendars();
   const { toast } = useToast();
 
   // WebSocket connection is now managed at app level via WebSocketProvider
+
+  // View mode state with localStorage persistence
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+
+  // Load view mode from localStorage on mount
+  useEffect(() => {
+    const savedMode = localStorage.getItem(ENTRIES_VIEW_MODE_KEY) as ViewMode | null;
+    if (savedMode === 'grid' || savedMode === 'list') {
+      setViewMode(savedMode);
+    }
+  }, []);
+
+  // Save view mode to localStorage when it changes
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+    localStorage.setItem(ENTRIES_VIEW_MODE_KEY, mode);
+  };
 
   // Filters and sort state
   const [filters, setFilters] = useState<FilterSortState>({
@@ -207,7 +226,12 @@ export default function EntriesPage() {
       </div>
 
       {/* Filter and Sort Bar */}
-      <FilterSortBar filters={filters} onFiltersChange={setFilters} />
+      <FilterSortBar
+        filters={filters}
+        onFiltersChange={setFilters}
+        viewMode={viewMode}
+        onViewModeChange={handleViewModeChange}
+      />
 
       {/* Entries List */}
       {isLoading ? (
@@ -226,6 +250,7 @@ export default function EntriesPage() {
           onAddToTask={handleAddToTask}
           onRemoveFromTask={handleRemoveFromTask}
           groupBy={filters.hasTimestamp === 'all' ? 'date' : 'none'}
+          viewMode={viewMode}
         />
       )}
 

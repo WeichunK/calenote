@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { TYPOGRAPHY, SPACING, INTERACTIVE, VISUAL } from '@/lib/design/tokens';
 
+export type ViewMode = 'grid' | 'list';
+
 interface EntriesListProps {
   entries: Entry[];
   tasks?: Task[];
@@ -24,6 +26,7 @@ interface EntriesListProps {
   onAddToTask?: (entry: Entry) => void;
   onRemoveFromTask?: (entry: Entry) => void;
   groupBy?: 'none' | 'date' | 'status';
+  viewMode?: ViewMode;
 }
 
 function getEntryTypeIcon(type: string): string {
@@ -60,9 +63,10 @@ interface EntryItemProps {
   onToggleComplete: (entry: Entry, e: React.MouseEvent) => Promise<void>;
   onAddToTask?: (entry: Entry) => void;
   onRemoveFromTask?: (entry: Entry) => void;
+  viewMode?: ViewMode;
 }
 
-const EntryItem = memo(function EntryItem({ entry, task, onEntryClick, onToggleComplete, onAddToTask, onRemoveFromTask }: EntryItemProps) {
+const EntryItem = memo(function EntryItem({ entry, task, onEntryClick, onToggleComplete, onAddToTask, onRemoveFromTask, viewMode = 'list' }: EntryItemProps) {
   const icon = getEntryTypeIcon(entry.entry_type);
   const time = entry.timestamp && !entry.is_all_day
     ? format(parseISO(entry.timestamp), 'MMM d, yyyy h:mm a')
@@ -79,6 +83,8 @@ const EntryItem = memo(function EntryItem({ entry, task, onEntryClick, onToggleC
     onEntryClick(entry);
   };
 
+  const isGridMode = viewMode === 'grid';
+
   return (
     <Card
       data-testid="entry-item"
@@ -87,160 +93,260 @@ const EntryItem = memo(function EntryItem({ entry, task, onEntryClick, onToggleC
         VISUAL.border.accent,
         getPriorityColor(entry.priority),
         entry.is_completed && 'opacity-60',
-        'hover:shadow-md hover:scale-[1.005]'
+        isGridMode
+          ? 'hover:shadow-lg break-inside-avoid'
+          : 'hover:shadow-md hover:scale-[1.005]'
       )}
       style={{
         backgroundColor: entry.color ? `${entry.color}08` : undefined,
       }}
       onClick={handleCardClick}
     >
-      <CardContent className={SPACING.card.padding}>
-        <div className={cn('flex items-start', SPACING.inline.gap)}>
-          {/* Checkbox */}
-          <button
-            data-testid="entry-checkbox"
-            onClick={(e) => onToggleComplete(entry, e)}
-            className="mt-1 flex-shrink-0"
-            type="button"
-            aria-label={entry.is_completed ? 'Mark as incomplete' : 'Mark as complete'}
-          >
-            <div
-              className={cn(
-                'w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-150',
-                entry.is_completed
-                  ? 'bg-primary border-primary'
-                  : 'border-gray-300 hover:border-primary hover:scale-110'
-              )}
-            >
-              {entry.is_completed && (
-                <svg
-                  className="w-3 h-3 text-primary-foreground"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-            </div>
-          </button>
-
-          {/* Entry Content */}
-          <div className="flex-1 min-w-0">
-            {/* Metadata row */}
-            <div className={cn('flex items-center flex-wrap', SPACING.inline.gapSmall, 'mb-2')}>
-              <span className="text-lg" aria-label={`${entry.entry_type} type`}>{icon}</span>
-              {time && (
-                <span className={TYPOGRAPHY.smallMuted}>
-                  {time}
-                </span>
-              )}
-              {entry.is_all_day && (
-                <Badge variant="secondary" className="text-xs">
-                  All day
-                </Badge>
-              )}
-              {entry.priority !== undefined && entry.priority > 0 && (
-                <Badge
-                  variant="secondary"
+      <CardContent className={isGridMode ? 'p-3' : SPACING.card.padding}>
+        {isGridMode ? (
+          /* Grid Mode - Compact Google Keep style */
+          <div className="space-y-2">
+            {/* Title and checkbox */}
+            <div className="flex items-start gap-2">
+              <button
+                data-testid="entry-checkbox"
+                onClick={(e) => onToggleComplete(entry, e)}
+                className="flex-shrink-0"
+                type="button"
+                aria-label={entry.is_completed ? 'Mark as incomplete' : 'Mark as complete'}
+              >
+                <div
                   className={cn(
-                    'text-xs',
-                    entry.priority === 3 && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-                    entry.priority === 2 && 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-                    entry.priority === 1 && 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    'w-4 h-4 rounded border-2 flex items-center justify-center transition-all duration-150',
+                    entry.is_completed
+                      ? 'bg-primary border-primary'
+                      : 'border-gray-300 hover:border-primary hover:scale-110'
                   )}
                 >
-                  {entry.priority === 3 && 'High Priority'}
-                  {entry.priority === 2 && 'Medium'}
-                  {entry.priority === 1 && 'Low'}
-                </Badge>
-              )}
-              {task && (
-                <Badge
-                  variant="outline"
-                  className="text-xs flex items-center gap-1"
-                  style={{
-                    borderColor: task.color || undefined,
-                    color: task.color || undefined,
-                  }}
-                >
-                  <CheckSquare className="h-3 w-3" />
-                  {task.icon && <span>{task.icon}</span>}
-                  <span className="truncate max-w-[120px]">{task.title}</span>
-                </Badge>
-              )}
+                  {entry.is_completed && (
+                    <svg
+                      className="w-2.5 h-2.5 text-primary-foreground"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </button>
+              <h4
+                className={cn(
+                  'text-sm font-medium flex-1',
+                  entry.is_completed && 'line-through text-muted-foreground'
+                )}
+              >
+                {entry.title}
+              </h4>
             </div>
-
-            {/* Title */}
-            <h4
-              className={cn(
-                TYPOGRAPHY.cardTitle,
-                entry.is_completed && 'line-through text-muted-foreground'
-              )}
-            >
-              {entry.title}
-            </h4>
 
             {/* Description */}
             {entry.content && (
-              <p className={cn(TYPOGRAPHY.smallMuted, 'mt-1.5 line-clamp-2')}>
+              <p className="text-xs text-muted-foreground line-clamp-3 ml-6">
                 {entry.content}
               </p>
             )}
 
+            {/* Compact metadata */}
+            {(time || task || entry.priority) && (
+              <div className="flex items-center gap-1 flex-wrap text-xs text-muted-foreground ml-6">
+                {time && <span className="truncate">{time}</span>}
+                {entry.priority && entry.priority > 0 && (
+                  <span
+                    className={cn(
+                      'px-1.5 py-0.5 rounded',
+                      entry.priority === 3 && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                      entry.priority === 2 && 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+                      entry.priority === 1 && 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    )}
+                  >
+                    {entry.priority === 3 && 'High'}
+                    {entry.priority === 2 && 'Med'}
+                    {entry.priority === 1 && 'Low'}
+                  </span>
+                )}
+                {task && (
+                  <span className="truncate max-w-[100px]" style={{ color: task.color || undefined }}>
+                    {task.icon} {task.title}
+                  </span>
+                )}
+              </div>
+            )}
+
             {/* Tags */}
             {entry.tags && entry.tags.length > 0 && (
-              <div className={cn('flex flex-wrap', SPACING.inline.gapSmall, 'mt-2')}>
-                {entry.tags.map((tag) => (
-                  <Badge
+              <div className="flex flex-wrap gap-1 ml-6">
+                {entry.tags.slice(0, 3).map((tag) => (
+                  <span
                     key={tag}
-                    variant="outline"
-                    className={TYPOGRAPHY.caption}
+                    className="text-xs px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground"
                   >
                     {tag}
-                  </Badge>
+                  </span>
                 ))}
+                {entry.tags.length > 3 && (
+                  <span className="text-xs text-muted-foreground">+{entry.tags.length - 3}</span>
+                )}
               </div>
             )}
           </div>
+        ) : (
+          /* List Mode - Full details */
+          <div className={cn('flex items-start', SPACING.inline.gap)}>
+            {/* Checkbox */}
+            <button
+              data-testid="entry-checkbox"
+              onClick={(e) => onToggleComplete(entry, e)}
+              className="mt-1 flex-shrink-0"
+              type="button"
+              aria-label={entry.is_completed ? 'Mark as incomplete' : 'Mark as complete'}
+            >
+              <div
+                className={cn(
+                  'w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-150',
+                  entry.is_completed
+                    ? 'bg-primary border-primary'
+                    : 'border-gray-300 hover:border-primary hover:scale-110'
+                )}
+              >
+                {entry.is_completed && (
+                  <svg
+                    className="w-3 h-3 text-primary-foreground"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+            </button>
 
-          {/* Actions Dropdown */}
-          {(onAddToTask || onRemoveFromTask) && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 flex-shrink-0"
-                  data-dropdown-trigger
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onEntryClick(entry)}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Entry
-                </DropdownMenuItem>
-                {onAddToTask && !entry.task_id && (
-                  <DropdownMenuItem onClick={() => onAddToTask(entry)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add to Task
-                  </DropdownMenuItem>
+            {/* Entry Content */}
+            <div className="flex-1 min-w-0">
+              {/* Metadata row */}
+              <div className={cn('flex items-center flex-wrap', SPACING.inline.gapSmall, 'mb-2')}>
+                <span className="text-lg" aria-label={`${entry.entry_type} type`}>{icon}</span>
+                {time && (
+                  <span className={TYPOGRAPHY.smallMuted}>
+                    {time}
+                  </span>
                 )}
-                {onRemoveFromTask && entry.task_id && (
-                  <DropdownMenuItem onClick={() => onRemoveFromTask(entry)}>
-                    <Unlink className="h-4 w-4 mr-2" />
-                    Remove from Task
-                  </DropdownMenuItem>
+                {entry.is_all_day && (
+                  <Badge variant="secondary" className="text-xs">
+                    All day
+                  </Badge>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
+                {entry.priority !== undefined && entry.priority > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      'text-xs',
+                      entry.priority === 3 && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                      entry.priority === 2 && 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+                      entry.priority === 1 && 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    )}
+                  >
+                    {entry.priority === 3 && 'High Priority'}
+                    {entry.priority === 2 && 'Medium'}
+                    {entry.priority === 1 && 'Low'}
+                  </Badge>
+                )}
+                {task && (
+                  <Badge
+                    variant="outline"
+                    className="text-xs flex items-center gap-1"
+                    style={{
+                      borderColor: task.color || undefined,
+                      color: task.color || undefined,
+                    }}
+                  >
+                    <CheckSquare className="h-3 w-3" />
+                    {task.icon && <span>{task.icon}</span>}
+                    <span className="truncate max-w-[120px]">{task.title}</span>
+                  </Badge>
+                )}
+              </div>
+
+              {/* Title */}
+              <h4
+                className={cn(
+                  TYPOGRAPHY.cardTitle,
+                  entry.is_completed && 'line-through text-muted-foreground'
+                )}
+              >
+                {entry.title}
+              </h4>
+
+              {/* Description */}
+              {entry.content && (
+                <p className={cn(TYPOGRAPHY.smallMuted, 'mt-1.5 line-clamp-2')}>
+                  {entry.content}
+                </p>
+              )}
+
+              {/* Tags */}
+              {entry.tags && entry.tags.length > 0 && (
+                <div className={cn('flex flex-wrap', SPACING.inline.gapSmall, 'mt-2')}>
+                  {entry.tags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="outline"
+                      className={TYPOGRAPHY.caption}
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Actions Dropdown */}
+            {(onAddToTask || onRemoveFromTask) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 flex-shrink-0"
+                    data-dropdown-trigger
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onEntryClick(entry)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Entry
+                  </DropdownMenuItem>
+                  {onAddToTask && !entry.task_id && (
+                    <DropdownMenuItem onClick={() => onAddToTask(entry)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add to Task
+                    </DropdownMenuItem>
+                  )}
+                  {onRemoveFromTask && entry.task_id && (
+                    <DropdownMenuItem onClick={() => onRemoveFromTask(entry)}>
+                      <Unlink className="h-4 w-4 mr-2" />
+                      Remove from Task
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -261,8 +367,9 @@ function getDateGroupLabel(entry: Entry): string {
   return format(date, 'MMMM yyyy');
 }
 
-export function EntriesList({ entries, tasks = [], onEntryClick, onAddToTask, onRemoveFromTask, groupBy = 'none' }: EntriesListProps) {
+export function EntriesList({ entries, tasks = [], onEntryClick, onAddToTask, onRemoveFromTask, groupBy = 'none', viewMode = 'list' }: EntriesListProps) {
   const toggleComplete = useToggleEntryComplete();
+  const isGridMode = viewMode === 'grid';
 
   // Create task lookup map
   const taskMap = useMemo(() => {
@@ -364,17 +471,23 @@ export function EntriesList({ entries, tasks = [], onEntryClick, onAddToTask, on
               </h3>
             )}
 
-            <div className={SPACING.section.gapSmall}>
+            <div className={cn(
+              isGridMode
+                ? 'columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-3'
+                : SPACING.section.gapSmall
+            )}>
               {groupEntries.map((entry) => (
-                <EntryItem
-                  key={entry.id}
-                  entry={entry}
-                  task={entry.task_id ? taskMap.get(entry.task_id) : undefined}
-                  onEntryClick={onEntryClick}
-                  onToggleComplete={handleToggleComplete}
-                  onAddToTask={onAddToTask}
-                  onRemoveFromTask={onRemoveFromTask}
-                />
+                <div key={entry.id} className={isGridMode ? 'mb-3 break-inside-avoid' : undefined}>
+                  <EntryItem
+                    entry={entry}
+                    task={entry.task_id ? taskMap.get(entry.task_id) : undefined}
+                    onEntryClick={onEntryClick}
+                    onToggleComplete={handleToggleComplete}
+                    onAddToTask={onAddToTask}
+                    onRemoveFromTask={onRemoveFromTask}
+                    viewMode={viewMode}
+                  />
+                </div>
               ))}
             </div>
           </div>

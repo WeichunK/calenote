@@ -19,8 +19,10 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import { X, SlidersHorizontal } from 'lucide-react';
+import { X, SlidersHorizontal, LayoutGrid, List } from 'lucide-react';
 import { useIsMobile } from '@/lib/hooks/useMediaQuery';
+
+export type ViewMode = 'grid' | 'list';
 
 export interface FilterSortState {
   entryType: 'all' | 'event' | 'note' | 'reminder';
@@ -34,9 +36,11 @@ export interface FilterSortState {
 interface FilterSortBarProps {
   filters: FilterSortState;
   onFiltersChange: (filters: FilterSortState) => void;
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
 }
 
-export function FilterSortBar({ filters, onFiltersChange }: FilterSortBarProps) {
+export function FilterSortBar({ filters, onFiltersChange, viewMode, onViewModeChange }: FilterSortBarProps) {
   const isMobile = useIsMobile();
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
@@ -209,6 +213,28 @@ export function FilterSortBar({ filters, onFiltersChange }: FilterSortBarProps) 
               <X className="h-4 w-4" />
             </Button>
           )}
+        </div>
+
+        {/* View Mode Toggle */}
+        <div className="flex gap-1 border rounded-md p-1 shrink-0">
+          <Button
+            variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+            size="icon"
+            onClick={() => onViewModeChange('grid')}
+            className="h-8 w-8"
+            aria-label="Grid view"
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+            size="icon"
+            onClick={() => onViewModeChange('list')}
+            className="h-8 w-8"
+            aria-label="List view"
+          >
+            <List className="h-4 w-4" />
+          </Button>
         </div>
 
         {/* Mobile: Filter button */}
