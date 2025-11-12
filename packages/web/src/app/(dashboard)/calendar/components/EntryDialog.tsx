@@ -8,6 +8,7 @@ import { format, parseISO } from 'date-fns';
 import type { Entry, CreateEntryDTO } from '@calenote/shared';
 import { useCreateEntry, useUpdateEntry, useDeleteEntry } from '@/lib/hooks/useEntries';
 import { useIsMobile } from '@/lib/hooks/useMediaQuery';
+import { convertLocalToUTC, convertUTCToLocal } from '@/lib/utils/datetime';
 import {
   Dialog,
   DialogContent,
@@ -89,12 +90,12 @@ export function EntryDialog({
         title: entry.title,
         content: entry.content || '',
         entry_type: entry.entry_type,
-        // Fix: Parse ISO string to Date, then format in local timezone
+        // Convert UTC timestamp to local timezone for display in datetime-local input
         timestamp: entry.timestamp
-          ? format(parseISO(entry.timestamp), "yyyy-MM-dd'T'HH:mm")
+          ? convertUTCToLocal(entry.timestamp)
           : '',
         end_timestamp: entry.end_timestamp
-          ? format(parseISO(entry.end_timestamp), "yyyy-MM-dd'T'HH:mm")
+          ? convertUTCToLocal(entry.end_timestamp)
           : '',
         is_all_day: entry.is_all_day || false,
         priority: entry.priority || 0,
@@ -143,8 +144,15 @@ export function EntryDialog({
         // Only add optional fields if they have values
         if (sanitizeValue(values.content)) updateData.content = values.content;
         if (values.entry_type) updateData.entry_type = values.entry_type;
-        if (sanitizeValue(values.timestamp)) updateData.timestamp = values.timestamp;
-        if (sanitizeValue(values.end_timestamp)) updateData.end_timestamp = values.end_timestamp;
+        // Convert local datetime to UTC before sending to backend
+        const sanitizedTimestamp = sanitizeValue(values.timestamp);
+        if (sanitizedTimestamp) {
+          updateData.timestamp = convertLocalToUTC(sanitizedTimestamp);
+        }
+        const sanitizedEndTimestamp = sanitizeValue(values.end_timestamp);
+        if (sanitizedEndTimestamp) {
+          updateData.end_timestamp = convertLocalToUTC(sanitizedEndTimestamp);
+        }
         if (values.is_all_day !== undefined) updateData.is_all_day = values.is_all_day;
         if (values.priority !== undefined && values.priority !== null) {
           updateData.priority = values.priority as 0 | 1 | 2 | 3;
@@ -155,13 +163,21 @@ export function EntryDialog({
         await updateEntry.mutateAsync({ id: entry.id, data: updateData });
       } else {
         // Create payload: includes calendar_id and optional task_id
+        // Convert local datetime to UTC before sending to backend
+        const sanitizedCreateTimestamp = sanitizeValue(values.timestamp);
+        const sanitizedCreateEndTimestamp = sanitizeValue(values.end_timestamp);
+
         const createData: CreateEntryDTO = {
           calendar_id: calendarId,
           title: values.title,
           content: sanitizeValue(values.content),
           entry_type: values.entry_type,
-          timestamp: sanitizeValue(values.timestamp),
-          end_timestamp: sanitizeValue(values.end_timestamp),
+          timestamp: sanitizedCreateTimestamp
+            ? convertLocalToUTC(sanitizedCreateTimestamp)
+            : undefined,
+          end_timestamp: sanitizedCreateEndTimestamp
+            ? convertLocalToUTC(sanitizedCreateEndTimestamp)
+            : undefined,
           is_all_day: values.is_all_day,
           priority: values.priority as 0 | 1 | 2 | 3 | undefined,
           tags: tags && tags.length > 0 ? tags : undefined,
