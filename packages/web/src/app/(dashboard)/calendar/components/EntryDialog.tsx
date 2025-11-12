@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import type { Entry, CreateEntryDTO } from '@calenote/shared';
 import { useCreateEntry, useUpdateEntry, useDeleteEntry } from '@/lib/hooks/useEntries';
 import { useIsMobile } from '@/lib/hooks/useMediaQuery';
@@ -89,8 +89,13 @@ export function EntryDialog({
         title: entry.title,
         content: entry.content || '',
         entry_type: entry.entry_type,
-        timestamp: entry.timestamp ? entry.timestamp.substring(0, 16) : '',
-        end_timestamp: entry.end_timestamp ? entry.end_timestamp.substring(0, 16) : '',
+        // Fix: Parse ISO string to Date, then format in local timezone
+        timestamp: entry.timestamp
+          ? format(parseISO(entry.timestamp), "yyyy-MM-dd'T'HH:mm")
+          : '',
+        end_timestamp: entry.end_timestamp
+          ? format(parseISO(entry.end_timestamp), "yyyy-MM-dd'T'HH:mm")
+          : '',
         is_all_day: entry.is_all_day || false,
         priority: entry.priority || 0,
         tags: entry.tags?.join(', ') || '',
