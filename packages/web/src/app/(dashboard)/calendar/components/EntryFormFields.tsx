@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import type { Entry } from '@calenote/shared';
 import {
@@ -39,6 +40,37 @@ interface EntryFormFieldsProps {
 }
 
 export function EntryFormFields({ form, error }: EntryFormFieldsProps) {
+  // Watch timestamp changes to auto-fill end_timestamp
+  const timestamp = form.watch('timestamp');
+  const endTimestamp = form.watch('end_timestamp');
+
+  useEffect(() => {
+    // Auto-fill end_timestamp when timestamp changes
+    // Only if end_timestamp is empty (don't overwrite user's manual input)
+    if (timestamp && !endTimestamp) {
+      try {
+        // Parse the datetime-local string and add 1 hour
+        const startDate = new Date(timestamp);
+        if (!isNaN(startDate.getTime())) {
+          const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // +1 hour
+
+          // Format back to datetime-local format (YYYY-MM-DDTHH:mm)
+          const year = endDate.getFullYear();
+          const month = String(endDate.getMonth() + 1).padStart(2, '0');
+          const day = String(endDate.getDate()).padStart(2, '0');
+          const hours = String(endDate.getHours()).padStart(2, '0');
+          const minutes = String(endDate.getMinutes()).padStart(2, '0');
+
+          const formattedEndTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+          form.setValue('end_timestamp', formattedEndTime, { shouldValidate: false });
+        }
+      } catch (error) {
+        // Silently fail if date parsing fails
+        console.error('Failed to auto-fill end_timestamp:', error);
+      }
+    }
+  }, [timestamp, endTimestamp, form]);
+
   return (
     <>
       {/* Error Message */}
