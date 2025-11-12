@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import type { Entry } from '@calenote/shared';
 import {
@@ -43,11 +43,12 @@ export function EntryFormFields({ form, error }: EntryFormFieldsProps) {
   // Watch timestamp changes to auto-update end_timestamp
   const timestamp = form.watch('timestamp');
   const endTimestamp = form.watch('end_timestamp');
+  const prevTimestampRef = useRef<string | undefined>(timestamp);
 
   useEffect(() => {
     // Auto-update end_timestamp when timestamp changes
-    // Strategy: Check if end_timestamp is currently "auto-synced" (exactly 1 hour after start)
-    // If yes, update it. If user manually changed it (broke the 1-hour relationship), don't update.
+    // Strategy: Check if end_timestamp was "auto-synced" with PREVIOUS start time
+    // If yes, update it to match NEW start time. If user manually changed it, don't update.
 
     if (!timestamp) return;
 
@@ -64,17 +65,17 @@ export function EntryFormFields({ form, error }: EntryFormFieldsProps) {
       if (!endTimestamp) {
         // Case 1: End time is empty - always auto-fill
         shouldUpdate = true;
-      } else {
-        // Case 2: End time exists - check if it's still "auto-synced" (1 hour after start)
+      } else if (prevTimestampRef.current) {
+        // Case 2: Check if end time was 1 hour after PREVIOUS start time
+        const prevStartDate = new Date(prevTimestampRef.current);
         const currentEndDate = new Date(endTimestamp);
-        if (!isNaN(currentEndDate.getTime())) {
-          // Calculate the expected auto-filled time based on PREVIOUS start time
-          // If current end time matches "start + 1 hour", it means user hasn't manually changed it
-          const timeDiff = currentEndDate.getTime() - startDate.getTime();
+
+        if (!isNaN(prevStartDate.getTime()) && !isNaN(currentEndDate.getTime())) {
+          // Calculate time difference between current end and PREVIOUS start
+          const timeDiff = currentEndDate.getTime() - prevStartDate.getTime();
           const oneHourInMs = 60 * 60 * 1000;
 
-          // If end time is exactly 1 hour after start time (or very close, within 1 minute tolerance)
-          // then it's still auto-synced and should be updated
+          // If end was 1 hour after the OLD start, update it to match NEW start
           if (Math.abs(timeDiff - oneHourInMs) < 60 * 1000) {
             shouldUpdate = true;
           }
@@ -93,6 +94,9 @@ export function EntryFormFields({ form, error }: EntryFormFieldsProps) {
         const formattedEndTime = `${year}-${month}-${day}T${hours}:${minutes}`;
         form.setValue('end_timestamp', formattedEndTime, { shouldValidate: false });
       }
+
+      // Update ref for next comparison
+      prevTimestampRef.current = timestamp;
     } catch (error) {
       // Silently fail if date parsing fails
       console.error('Failed to auto-update end_timestamp:', error);
