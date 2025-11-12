@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import type { Entry, Task } from '@calenote/shared';
+import type { HolidayMap } from '@/types/holiday';
 import { getMonthDays, groupEntriesByDate, formatDate, isSameMonth, isToday, WEEKDAYS } from '@/lib/utils/calendar';
+import { formatDateToHolidayKey } from '@/lib/utils/holidays';
 import { CalendarCell } from './CalendarCell';
 import { CalendarSkeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -10,6 +12,7 @@ interface CalendarGridProps {
   month: Date;
   entries: Entry[];
   tasks: Task[];
+  holidayMap: HolidayMap;
   onDateClick: (date: Date) => void;
   onEntryClick: (entry: Entry) => void;
   onShowMore?: (date: Date) => void;
@@ -21,6 +24,7 @@ export function CalendarGrid({
   month,
   entries,
   tasks,
+  holidayMap,
   onDateClick,
   onEntryClick,
   onShowMore,
@@ -72,6 +76,8 @@ export function CalendarGrid({
       <div className="grid grid-cols-7">
         {days.map((date) => {
           const dateStr = formatDate(date);
+          const holidayKey = formatDateToHolidayKey(date);
+          const holiday = holidayMap[holidayKey];
 
           return (
             <CalendarCell
@@ -81,6 +87,7 @@ export function CalendarGrid({
               isToday={isToday(date)}
               entries={entriesByDate[dateStr] || []}
               taskMap={taskMap}
+              holiday={holiday}
               onDateClick={onDateClick}
               onEntryClick={onEntryClick}
               onShowMore={onShowMore}

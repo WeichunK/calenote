@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { startOfWeek, endOfWeek, addWeeks, addDays, parseISO } from 'date-fns';
 import type { Entry } from '@calenote/shared';
+import type { HolidayMap } from '@/types/holiday';
 import { useCalendar } from '@/lib/hooks/useCalendar';
 import { useCalendars } from '@/lib/hooks/useCalendars';
 import { useEntries } from '@/lib/hooks/useEntries';
@@ -24,7 +25,14 @@ type DialogState =
   | { type: 'edit'; entry: Entry }
   | { type: 'day-list'; date: Date; entries: Entry[] };
 
-export function CalendarView() {
+interface CalendarViewProps {
+  /** Holiday data for current year */
+  holidayMap: HolidayMap;
+  /** Holiday data for next year (for smooth year transitions) */
+  nextYearHolidayMap?: HolidayMap;
+}
+
+export function CalendarView({ holidayMap, nextYearHolidayMap }: CalendarViewProps) {
   const { viewingMonth, goToToday, goToPrevMonth, goToNextMonth } = useCalendar();
   const [dialog, setDialog] = useState<DialogState>({ type: 'closed' });
   const [viewType, setViewType] = useState<CalendarViewType>('month');
@@ -35,6 +43,20 @@ export function CalendarView() {
   const currentCalendarId = useCalendarStore((state) => state.currentCalendarId);
 
   // WebSocket connection is now managed at app level via WebSocketProvider
+
+  // Select appropriate holiday map based on viewing month
+  const activeHolidayMap = useMemo(() => {
+    const viewingYear = viewingMonth.getFullYear();
+    const currentYear = new Date().getFullYear();
+
+    // If viewing next year and we have that data, use it
+    if (viewingYear === currentYear + 1 && nextYearHolidayMap) {
+      return nextYearHolidayMap;
+    }
+
+    // Otherwise use current year map
+    return holidayMap;
+  }, [viewingMonth, holidayMap, nextYearHolidayMap]);
 
   // Fetch entries for current view
   const { start_date, end_date } = useMemo(() => {
@@ -173,6 +195,7 @@ export function CalendarView() {
           month={viewingMonth}
           entries={filteredEntries}
           tasks={tasks}
+          holidayMap={activeHolidayMap}
           onDateClick={handleDateClick}
           onEntryClick={handleEntryClick}
           onShowMore={handleShowMore}

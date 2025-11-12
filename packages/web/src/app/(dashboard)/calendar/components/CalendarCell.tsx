@@ -1,6 +1,8 @@
 import { memo } from 'react';
 import type { Entry, Task } from '@calenote/shared';
+import type { HolidayData } from '@/types/holiday';
 import { cn } from '@/lib/utils';
+import { isMakeupWorkday } from '@/lib/utils/holidays';
 import { EntryBadge } from './EntryBadge';
 
 interface CalendarCellProps {
@@ -9,6 +11,7 @@ interface CalendarCellProps {
   isToday: boolean;
   entries: Entry[];
   taskMap: Map<string, Task>;
+  holiday?: HolidayData;
   onDateClick: (date: Date) => void;
   onEntryClick: (entry: Entry) => void;
   onShowMore?: (date: Date) => void;
@@ -20,6 +23,7 @@ export const CalendarCell = memo(function CalendarCell({
   isToday,
   entries,
   taskMap,
+  holiday,
   onDateClick,
   onEntryClick,
   onShowMore,
@@ -29,6 +33,10 @@ export const CalendarCell = memo(function CalendarCell({
   const displayEntries = entries.slice(0, maxDisplay);
   const remaining = entries.length - maxDisplay;
 
+  // Determine holiday styling
+  const isPublicHoliday = holiday?.isHoliday === true;
+  const isMakeupWorkdayDate = isMakeupWorkday(holiday);
+
   return (
     <div
       data-testid="calendar-cell"
@@ -37,21 +45,52 @@ export const CalendarCell = memo(function CalendarCell({
         'border-r border-b p-1 sm:p-2 h-24 sm:h-32',
         'cursor-pointer hover:bg-accent/50 transition-colors',
         'flex flex-col',
-        !isCurrentMonth && 'bg-muted/30 text-muted-foreground'
+        !isCurrentMonth && 'bg-muted/30 text-muted-foreground',
+        isPublicHoliday && 'bg-red-50 dark:bg-red-950/20'
       )}
       onClick={() => onDateClick(date)}
     >
-      {/* Day number */}
+      {/* Day number with holiday indicator */}
       <div className="flex items-center justify-between mb-1">
-        <span
-          className={cn(
-            'text-sm font-medium',
-            isToday && 'bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center'
+        <div className="flex items-center gap-0.5">
+          <span
+            className={cn(
+              'text-sm font-medium',
+              isToday && 'bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center',
+              isPublicHoliday && 'text-red-600 dark:text-red-400 font-semibold',
+              isMakeupWorkdayDate && 'text-orange-600 dark:text-orange-400'
+            )}
+          >
+            {date.getDate()}
+          </span>
+
+          {/* Emoji indicators */}
+          {isPublicHoliday && (
+            <span className="text-xs" title={holiday?.description}>
+              🎌
+            </span>
           )}
-        >
-          {date.getDate()}
-        </span>
+          {isMakeupWorkdayDate && (
+            <span className="text-xs" title={holiday?.description}>
+              ⚠️
+            </span>
+          )}
+        </div>
       </div>
+
+      {/* Holiday name (optional, shows below day number) */}
+      {holiday?.description && (
+        <div
+          className={cn(
+            'text-[10px] sm:text-xs truncate mb-0.5',
+            isPublicHoliday && 'text-red-600 dark:text-red-400',
+            isMakeupWorkdayDate && 'text-orange-600 dark:text-orange-400'
+          )}
+          title={holiday.description}
+        >
+          {holiday.description}
+        </div>
+      )}
 
       {/* Entries */}
       <div className="flex-1 overflow-hidden space-y-0.5">
