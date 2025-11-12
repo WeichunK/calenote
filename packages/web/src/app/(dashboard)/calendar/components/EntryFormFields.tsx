@@ -40,34 +40,62 @@ interface EntryFormFieldsProps {
 }
 
 export function EntryFormFields({ form, error }: EntryFormFieldsProps) {
-  // Watch timestamp changes to auto-fill end_timestamp
+  // Watch timestamp changes to auto-update end_timestamp
   const timestamp = form.watch('timestamp');
   const endTimestamp = form.watch('end_timestamp');
 
   useEffect(() => {
-    // Auto-fill end_timestamp when timestamp changes
-    // Only if end_timestamp is empty (don't overwrite user's manual input)
-    if (timestamp && !endTimestamp) {
-      try {
-        // Parse the datetime-local string and add 1 hour
-        const startDate = new Date(timestamp);
-        if (!isNaN(startDate.getTime())) {
-          const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // +1 hour
+    // Auto-update end_timestamp when timestamp changes
+    // Strategy: Check if end_timestamp is currently "auto-synced" (exactly 1 hour after start)
+    // If yes, update it. If user manually changed it (broke the 1-hour relationship), don't update.
 
-          // Format back to datetime-local format (YYYY-MM-DDTHH:mm)
-          const year = endDate.getFullYear();
-          const month = String(endDate.getMonth() + 1).padStart(2, '0');
-          const day = String(endDate.getDate()).padStart(2, '0');
-          const hours = String(endDate.getHours()).padStart(2, '0');
-          const minutes = String(endDate.getMinutes()).padStart(2, '0');
+    if (!timestamp) return;
 
-          const formattedEndTime = `${year}-${month}-${day}T${hours}:${minutes}`;
-          form.setValue('end_timestamp', formattedEndTime, { shouldValidate: false });
+    try {
+      const startDate = new Date(timestamp);
+      if (isNaN(startDate.getTime())) return;
+
+      // Calculate what the auto-filled end time should be
+      const autoEndDate = new Date(startDate.getTime() + 60 * 60 * 1000); // +1 hour
+
+      // Check if end_timestamp should be auto-updated
+      let shouldUpdate = false;
+
+      if (!endTimestamp) {
+        // Case 1: End time is empty - always auto-fill
+        shouldUpdate = true;
+      } else {
+        // Case 2: End time exists - check if it's still "auto-synced" (1 hour after start)
+        const currentEndDate = new Date(endTimestamp);
+        if (!isNaN(currentEndDate.getTime())) {
+          // Calculate the expected auto-filled time based on PREVIOUS start time
+          // If current end time matches "start + 1 hour", it means user hasn't manually changed it
+          const timeDiff = currentEndDate.getTime() - startDate.getTime();
+          const oneHourInMs = 60 * 60 * 1000;
+
+          // If end time is exactly 1 hour after start time (or very close, within 1 minute tolerance)
+          // then it's still auto-synced and should be updated
+          if (Math.abs(timeDiff - oneHourInMs) < 60 * 1000) {
+            shouldUpdate = true;
+          }
+          // Otherwise, user has manually modified it - don't update
         }
-      } catch (error) {
-        // Silently fail if date parsing fails
-        console.error('Failed to auto-fill end_timestamp:', error);
       }
+
+      if (shouldUpdate) {
+        // Format to datetime-local format (YYYY-MM-DDTHH:mm)
+        const year = autoEndDate.getFullYear();
+        const month = String(autoEndDate.getMonth() + 1).padStart(2, '0');
+        const day = String(autoEndDate.getDate()).padStart(2, '0');
+        const hours = String(autoEndDate.getHours()).padStart(2, '0');
+        const minutes = String(autoEndDate.getMinutes()).padStart(2, '0');
+
+        const formattedEndTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+        form.setValue('end_timestamp', formattedEndTime, { shouldValidate: false });
+      }
+    } catch (error) {
+      // Silently fail if date parsing fails
+      console.error('Failed to auto-update end_timestamp:', error);
     }
   }, [timestamp, endTimestamp, form]);
 
