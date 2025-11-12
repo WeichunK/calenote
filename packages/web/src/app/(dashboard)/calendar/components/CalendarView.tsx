@@ -108,8 +108,11 @@ export function CalendarView() {
     );
 
     if (dateEntries.length === 0) {
-      // No entries - open create dialog directly
-      setDialog({ type: 'create', date });
+      // No entries - open create dialog directly with current time
+      const now = new Date();
+      const dateWithCurrentTime = new Date(date);
+      dateWithCurrentTime.setHours(now.getHours(), now.getMinutes(), 0, 0);
+      setDialog({ type: 'create', date: dateWithCurrentTime });
     } else {
       // Has entries - show day list first
       setDialog({ type: 'day-list', date, entries: dateEntries });
@@ -141,7 +144,11 @@ export function CalendarView() {
 
   const handleCreateFromDayList = useCallback(() => {
     if (dialog.type === 'day-list') {
-      setDialog({ type: 'create', date: dialog.date });
+      // Set time to current time instead of 00:00
+      const now = new Date();
+      const dateWithCurrentTime = new Date(dialog.date);
+      dateWithCurrentTime.setHours(now.getHours(), now.getMinutes(), 0, 0);
+      setDialog({ type: 'create', date: dateWithCurrentTime });
     }
   }, [dialog]);
 
