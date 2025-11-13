@@ -14,6 +14,8 @@ from app.schemas.entry import (
     EntryInDB,
     EntryWithStats,
     EntryDetail,
+    EntryWithCreator,
+    EntryWithCreatorAndStats,
     EntryComplete,
     EntryAddToTask,
     EntryFilter,
@@ -35,7 +37,7 @@ router = APIRouter(tags=["entries"])
 # CRUD 端點
 # ============================================
 
-@router.post("/", response_model=EntryInDB, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=EntryWithCreator, status_code=status.HTTP_201_CREATED)
 async def create_entry(
     entry_in: EntryCreate,
     db: AsyncSession = Depends(get_db),
@@ -111,7 +113,7 @@ async def get_entry(
     return entry
 
 
-@router.get("/", response_model=List[EntryWithStats])
+@router.get("/", response_model=List[EntryWithCreatorAndStats])
 async def list_entries(
     calendar_id: UUID,
     task_id: Optional[UUID] = None,
@@ -175,7 +177,7 @@ async def list_entries(
     return entries
 
 
-@router.patch("/{entry_id}", response_model=EntryInDB)
+@router.patch("/{entry_id}", response_model=EntryWithCreator)
 async def update_entry(
     entry_id: UUID,
     entry_update: EntryUpdate,

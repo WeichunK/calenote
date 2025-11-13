@@ -1,5 +1,7 @@
 // Entry Types - 與後端 API schema 對應
 
+import type { UserSummary } from './auth';
+
 export interface Entry {
   id: string;
   calendar_id: string;
@@ -20,9 +22,11 @@ export interface Entry {
   task_id?: string;
   task?: Task; // Populated when included
   created_by: string;
+  created_by_user?: UserSummary; // Creator information for collaboration
   created_at: string;
   updated_at: string;
   last_modified_by?: string;
+  last_modified_by_user?: UserSummary; // Modifier information
 }
 
 export interface CreateEntryDTO {

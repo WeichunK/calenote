@@ -6,6 +6,9 @@ from typing import Optional, List
 from uuid import UUID
 from pydantic import BaseModel, Field, ConfigDict
 
+# Import UserSummary for creator information
+from app.schemas.auth import UserSummary
+
 
 # ============================================
 # Base Schemas
@@ -81,6 +84,22 @@ class EntryDetail(EntryInDB):
     # TODO: Add when Attachment and Comment models are created
     # attachments: List[AttachmentInDB] = []
     # comments: List[CommentInDB] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class EntryWithCreator(EntryInDB):
+    """Entry with creator information (for collaboration scenarios)"""
+    created_by_user: Optional[UserSummary] = None
+    last_modified_by_user: Optional[UserSummary] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class EntryWithCreatorAndStats(EntryWithCreator):
+    """Entry with creator information and statistics"""
+    is_scheduled: bool = False
+    is_overdue: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 

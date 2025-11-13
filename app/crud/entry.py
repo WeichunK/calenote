@@ -1,9 +1,10 @@
 """
 Entry CRUD operations
 """
-from typing import List, Optional
+from typing import List, Optional, Union, Dict, Any
 from uuid import UUID
 from sqlalchemy import select, and_, or_, func
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import CRUDBase
@@ -13,6 +14,58 @@ from app.schemas.entry import EntryCreate, EntryUpdate, EntryFilter, EntrySort
 
 class CRUDEntry(CRUDBase[Entry, EntryCreate, EntryUpdate]):
     """CRUD operations for Entry"""
+
+    async def get(self, db: AsyncSession, id: UUID) -> Optional[Entry]:
+        """Get a single entry by ID with creator and modifier loaded"""
+        result = await db.execute(
+            select(Entry)
+            .where(Entry.id == id)
+            .options(
+                selectinload(Entry.created_by_user),
+                selectinload(Entry.last_modified_by_user)
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def create(
+        self,
+        db: AsyncSession,
+        *,
+        obj_in: EntryCreate,
+        **kwargs: Any
+    ) -> Entry:
+        """Create a new entry with creator loaded"""
+        obj_in_data = obj_in.model_dump()
+        obj_in_data.update(kwargs)
+        db_obj = Entry(**obj_in_data)
+        db.add(db_obj)
+        await db.commit()
+        # Reload with relationships
+        return await self.get(db, id=db_obj.id)
+
+    async def update(
+        self,
+        db: AsyncSession,
+        *,
+        db_obj: Entry,
+        obj_in: Union[EntryUpdate, Dict[str, Any]],
+        **kwargs: Any
+    ) -> Entry:
+        """Update an entry with creator loaded"""
+        if isinstance(obj_in, dict):
+            update_data = obj_in
+        else:
+            update_data = obj_in.model_dump(exclude_unset=True)
+
+        update_data.update(kwargs)
+
+        for field, value in update_data.items():
+            setattr(db_obj, field, value)
+
+        db.add(db_obj)
+        await db.commit()
+        # Reload with relationships
+        return await self.get(db, id=db_obj.id)
 
     async def get_by_calendar(
         self,
@@ -81,7 +134,10 @@ class CRUDEntry(CRUDBase[Entry, EntryCreate, EntryUpdate]):
         limit: int = 100
     ) -> List[Entry]:
         """Get entries with filters and sorting"""
-        query = select(Entry).where(Entry.calendar_id == filters.calendar_id)
+        query = select(Entry).where(Entry.calendar_id == filters.calendar_id).options(
+            selectinload(Entry.created_by_user),
+            selectinload(Entry.last_modified_by_user)
+        )
 
         # Apply filters
         if filters.task_id is not None:

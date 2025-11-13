@@ -216,6 +216,28 @@ export function EntryDialog({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
         <EntryFormFields form={form} error={error} />
 
+        {/* Creator and modifier information (only in edit mode) */}
+        {isEditMode && entry && (
+          <div className="pt-4 border-t space-y-2 text-sm text-muted-foreground">
+            {entry.created_by_user && (
+              <div className="flex items-center justify-between">
+                <span>Created by:</span>
+                <span className="font-medium">
+                  {entry.created_by_user.username} ({entry.created_at ? format(parseISO(entry.created_at), 'PPp') : 'Unknown'})
+                </span>
+              </div>
+            )}
+            {entry.last_modified_by_user && entry.last_modified_by !== entry.created_by && (
+              <div className="flex items-center justify-between">
+                <span>Last modified by:</span>
+                <span className="font-medium">
+                  {entry.last_modified_by_user.username} ({entry.updated_at ? format(parseISO(entry.updated_at), 'PPp') : 'Unknown'})
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Footer buttons are rendered outside form in Dialog/Sheet */}
       </form>
     </Form>

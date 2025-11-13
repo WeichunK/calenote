@@ -103,6 +103,20 @@ class Entry(Base):
     # 關聯
     calendar = relationship("Calendar", back_populates="entries")
     task = relationship("Task", back_populates="entries")
+    created_by_user = relationship(
+        "User",
+        foreign_keys="Entry.created_by",
+        primaryjoin="Entry.created_by==User.id",
+        lazy="joined",
+        viewonly=True
+    )
+    last_modified_by_user = relationship(
+        "User",
+        foreign_keys="Entry.last_modified_by",
+        primaryjoin="Entry.last_modified_by==User.id",
+        lazy="joined",
+        viewonly=True
+    )
     # TODO: Implement when Attachment and Comment models are created
     # attachments = relationship("Attachment", back_populates="entry", cascade="all, delete-orphan")
     # comments = relationship("Comment", back_populates="entry", cascade="all, delete-orphan")

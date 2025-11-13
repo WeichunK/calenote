@@ -48,6 +48,11 @@ export function EntryBadge({ entry, task, onClick, compact = false }: EntryBadge
       {!entry.is_all_day && time && <span className="font-medium flex-shrink-0">{time}</span>}
       {task && task.icon && <span className="flex-shrink-0">{task.icon}</span>}
       <span className="truncate flex-1 min-w-0">{entry.title}</span>
+      {entry.created_by_user && (
+        <span className="text-[10px] text-muted-foreground flex-shrink-0 ml-1">
+          @{entry.created_by_user.username}
+        </span>
+      )}
     </button>
   );
 }

@@ -1,5 +1,11 @@
 // Authentication Types - 與後端 API schema 對應
 
+export interface UserSummary {
+  id: string;
+  username: string;
+  email: string;
+}
+
 export interface User {
   id: string;
   email: string;

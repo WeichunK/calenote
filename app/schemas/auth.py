@@ -33,6 +33,15 @@ class UserLogin(BaseModel):
     password: str = Field(..., description="密碼")
 
 
+class UserSummary(BaseModel):
+    """使用者摘要資訊（用於顯示創建者等）"""
+    id: UUID
+    username: str
+    email: EmailStr
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class UserResponse(UserBase):
     """使用者資訊回應 schema"""
     id: UUID
