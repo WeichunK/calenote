@@ -8,6 +8,7 @@ import { handleWebSocketMessage } from './handlers';
 import { useAuthStore } from '../stores/authStore';
 import { useCalendarStore } from '../stores/calendarStore';
 import WebSocketSingleton from './singleton';
+import { API_CONFIG } from '@calenote/shared';
 
 // Context to share WebSocket client across app
 const WebSocketContext = createContext<CalenoteWebSocketClient | null>(null);
@@ -26,9 +27,10 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Get WebSocket URL from environment
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'localhost:8000';
-    const wsUrl = apiUrl.replace(/^https?:\/\//, ''); // Remove protocol
+    // Get WebSocket URL from environment or config
+    const wsBaseUrl = process.env.NEXT_PUBLIC_WS_URL || API_CONFIG.WS_URL;
+    // Extract hostname and port from URL (remove protocol and path)
+    const wsUrl = wsBaseUrl.replace(/^wss?:\/\//, '').replace(/\/ws.*$/, '');
 
     console.log('[WebSocketProvider] Initializing connection for calendar:', currentCalendarId);
 

@@ -1,0 +1,9 @@
+{
+  "python": {
+    "version": "3.11",
+    "entry": "app/main.py",
+    "package_manager": "pip",
+    "install_cmd": "pip install -r requirements.txt",
+    "build_cmd": ""
+  }
+}

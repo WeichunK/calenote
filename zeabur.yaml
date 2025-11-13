@@ -1,0 +1,288 @@
+# Zeabur Deployment Template for Calenote
+# Calendar and Task Management System with Entry-First Philosophy
+#
+# This template deploys:
+# - PostgreSQL 15 (Database)
+# - Redis 7 (Cache & Session)
+# - Backend API (FastAPI + Python 3.11)
+# - Frontend Web (Next.js 16 Monorepo)
+
+apiVersion: zeabur.com/v1
+kind: Template
+metadata:
+  name: calenote
+  displayName: Calenote - Calendar & Task Manager
+  description: |
+    A modern calendar and task management system with entry-first philosophy.
+    Features real-time sync via WebSocket, multi-user collaboration, and Google Keep-style UI.
+  icon: https://raw.githubusercontent.com/WeichunK/calenote/main/.github/icon.png
+  tags:
+    - calendar
+    - task-management
+    - fastapi
+    - nextjs
+    - real-time
+    - collaboration
+
+spec:
+  # ============================================
+  # Service 1: PostgreSQL Database
+  # ============================================
+  services:
+    - name: postgres
+      icon: https://raw.githubusercontent.com/zeabur/service-icons/main/marketplace/postgresql.svg
+      template: POSTGRESQL
+      spec:
+        source:
+          image: postgres:15-alpine
+        ports:
+          - id: database
+            port: 5432
+            type: TCP
+        volumes:
+          - id: data
+            dir: /var/lib/postgresql/data
+        env:
+          POSTGRES_USER:
+            default: calendar_user
+          POSTGRES_PASSWORD:
+            default: ${PASSWORD}
+          POSTGRES_DB:
+            default: calendar_db
+        instructions: |
+          PostgreSQL 15 database initialized with:
+          - Database: calendar_db
+          - User: calendar_user
+          - Password: Auto-generated (see environment variables)
+
+          Connection string is automatically injected to backend as:
+          DATABASE_URL=${POSTGRES_CONNECTION_STRING}
+
+    # ============================================
+    # Service 2: Redis Cache
+    # ============================================
+    - name: redis
+      icon: https://raw.githubusercontent.com/zeabur/service-icons/main/marketplace/redis.svg
+      template: REDIS
+      spec:
+        source:
+          image: redis:7-alpine
+        ports:
+          - id: cache
+            port: 6379
+            type: TCP
+        volumes:
+          - id: data
+            dir: /data
+        env:
+          REDIS_PASSWORD:
+            default: ${PASSWORD}
+        instructions: |
+          Redis 7 cache service for:
+          - User sessions
+          - WebSocket connection state
+          - API caching (future)
+
+          Connection string is automatically injected to backend as:
+          REDIS_URL=${REDIS_CONNECTION_STRING}
+
+    # ============================================
+    # Service 3: Backend API (FastAPI)
+    # ============================================
+    - name: backend
+      icon: https://raw.githubusercontent.com/zeabur/service-icons/main/languages/python.svg
+      template: GIT
+      spec:
+        source:
+          type: git
+          url: https://github.com/WeichunK/calenote
+          branch: main
+        buildCommand: pip install -r requirements.txt
+        startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT}
+        ports:
+          - id: api
+            port: 8000
+            type: HTTP
+        volumes:
+          - id: uploads
+            dir: /app/uploads
+        env:
+          # Python Configuration
+          PYTHONUNBUFFERED:
+            default: "1"
+          PYTHONDONTWRITEBYTECODE:
+            default: "1"
+
+          # Database Connection (Auto-injected)
+          DATABASE_URL:
+            default: ${POSTGRES_CONNECTION_STRING}
+
+          # Redis Connection (Auto-injected)
+          REDIS_URL:
+            default: ${REDIS_CONNECTION_STRING}
+          CELERY_BROKER_URL:
+            default: ${REDIS_CONNECTION_STRING}
+          CELERY_RESULT_BACKEND:
+            default: ${REDIS_CONNECTION_STRING}
+
+          # Security - CRITICAL: Must be set manually after deployment
+          SECRET_KEY:
+            default: CHANGE_ME_USE_openssl_rand_hex_32
+          ALGORITHM:
+            default: HS256
+          ACCESS_TOKEN_EXPIRE_MINUTES:
+            default: "30"
+          REFRESH_TOKEN_EXPIRE_DAYS:
+            default: "7"
+
+          # CORS Configuration (Auto-configured with frontend domain)
+          BACKEND_CORS_ORIGINS:
+            default: '["${FRONTEND_DOMAIN}"]'
+
+          # Application Settings
+          ENVIRONMENT:
+            default: production
+          PROJECT_NAME:
+            default: Calendar App API
+          DEBUG:
+            default: "false"
+
+          # Database Pool
+          DATABASE_POOL_SIZE:
+            default: "5"
+          DATABASE_MAX_OVERFLOW:
+            default: "10"
+
+          # WebSocket
+          WEBSOCKET_PING_INTERVAL:
+            default: "30"
+          WEBSOCKET_TIMEOUT:
+            default: "300"
+
+          # Features
+          ENABLE_REGISTRATION:
+            default: "true"
+          ENABLE_DOCS:
+            default: "true"
+          DOCS_URL:
+            default: /api/docs
+          REDOC_URL:
+            default: /api/redoc
+
+          # Localization
+          DEFAULT_TIMEZONE:
+            default: Asia/Taipei
+          DEFAULT_LANGUAGE:
+            default: zh-TW
+
+          # Logging
+          LOG_LEVEL:
+            default: INFO
+          LOG_FORMAT:
+            default: json
+
+          # File Upload
+          UPLOAD_DIR:
+            default: /app/uploads
+          MAX_UPLOAD_SIZE:
+            default: "10485760"
+
+        instructions: |
+          Backend API Service (FastAPI + Python 3.11)
+
+          ⚠️  IMPORTANT: After deployment, generate and set SECRET_KEY:
+
+          1. Generate a secure key:
+             openssl rand -hex 32
+
+          2. Update the SECRET_KEY environment variable in Zeabur dashboard
+
+          3. Restart the backend service
+
+          API Documentation:
+          - Swagger UI: https://${BACKEND_DOMAIN}/api/docs
+          - ReDoc: https://${BACKEND_DOMAIN}/api/redoc
+
+          Features:
+          ✅ Auto database migration on startup (alembic upgrade head)
+          ✅ File upload support (Volume: /app/uploads)
+          ✅ WebSocket real-time sync
+          ✅ JWT authentication
+          ✅ Multi-user collaboration
+
+    # ============================================
+    # Service 4: Frontend Web (Next.js)
+    # ============================================
+    - name: frontend
+      icon: https://raw.githubusercontent.com/zeabur/service-icons/main/languages/typescript.svg
+      template: GIT
+      spec:
+        source:
+          type: git
+          url: https://github.com/WeichunK/calenote
+          branch: main
+          # Monorepo: frontend is in packages/web
+          rootDirectory: packages/web
+        buildCommand: cd ../.. && npm install && npm run build --workspace=web
+        startCommand: cd ../.. && npm run start --workspace=web
+        ports:
+          - id: web
+            port: 3000
+            type: HTTP
+        env:
+          # API Configuration (Auto-configured with backend domain)
+          NEXT_PUBLIC_API_URL:
+            default: https://${BACKEND_DOMAIN}/api/v1
+          NEXT_PUBLIC_WS_URL:
+            default: wss://${BACKEND_DOMAIN}/ws
+
+          # Next.js Configuration
+          NODE_ENV:
+            default: production
+
+        instructions: |
+          Frontend Web Application (Next.js 16 + React 19)
+
+          Features:
+          ✅ Calendar View (Month/Week/Day)
+          ✅ Entry List View with filters
+          ✅ Task Board (Kanban style)
+          ✅ Real-time sync via WebSocket
+          ✅ Mobile responsive design
+          ✅ Taiwan public holidays
+          ✅ Multi-user collaboration
+
+          Access the app:
+          https://${FRONTEND_DOMAIN}
+
+          Default test account:
+          Email: demo@example.com
+          Password: demo123456
+
+  # ============================================
+  # Service Dependencies
+  # ============================================
+  dependencies:
+    - service: backend
+      dependsOn:
+        - postgres
+        - redis
+    - service: frontend
+      dependsOn:
+        - backend
+
+  # ============================================
+  # Template Variables
+  # ============================================
+  variables:
+    PASSWORD:
+      description: Auto-generated secure password for databases
+      type: secret
+    BACKEND_DOMAIN:
+      description: Backend service domain (auto-assigned by Zeabur)
+      type: domain
+      service: backend
+    FRONTEND_DOMAIN:
+      description: Frontend service domain (auto-assigned by Zeabur)
+      type: domain
+      service: frontend

@@ -1,0 +1,8 @@
+{
+  "app_dir": ".",
+  "node": {
+    "install_cmd": "cd ../.. && npm install",
+    "build_cmd": "cd ../.. && npm run build --workspace=web",
+    "start_cmd": "cd ../.. && npm run start --workspace=web"
+  }
+}
