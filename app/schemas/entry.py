@@ -128,6 +128,8 @@ class EntryFilter(BaseModel):
     has_timestamp: Optional[bool] = None
     tags: Optional[List[str]] = None
     search: Optional[str] = None
+    start_date: Optional[str] = None  # YYYY-MM-DD format
+    end_date: Optional[str] = None    # YYYY-MM-DD format
 
 
 class EntrySort(BaseModel):

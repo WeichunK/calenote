@@ -161,6 +161,8 @@ async def list_entries(
         has_timestamp=has_timestamp,
         tags=tags,
         search=search,
+        start_date=start_date,
+        end_date=end_date,
     )
     
     # 排序

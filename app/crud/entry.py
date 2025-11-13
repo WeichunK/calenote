@@ -168,6 +168,19 @@ class CRUDEntry(CRUDBase[Entry, EntryCreate, EntryUpdate]):
                 )
             )
 
+        # Apply date range filters
+        if filters.start_date is not None:
+            # Convert YYYY-MM-DD to timestamp for comparison
+            from datetime import datetime
+            start_datetime = datetime.fromisoformat(f"{filters.start_date}T00:00:00")
+            query = query.where(Entry.timestamp >= start_datetime)
+
+        if filters.end_date is not None:
+            # Convert YYYY-MM-DD to timestamp for comparison (end of day)
+            from datetime import datetime
+            end_datetime = datetime.fromisoformat(f"{filters.end_date}T23:59:59")
+            query = query.where(Entry.timestamp <= end_datetime)
+
         # Apply sorting
         sort_column = getattr(Entry, sort.sort_by, Entry.created_at)
         if sort.order == "desc":

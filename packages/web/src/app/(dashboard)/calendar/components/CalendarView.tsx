@@ -107,6 +107,12 @@ export function CalendarView({ holidayMap, nextYearHolidayMap }: CalendarViewPro
   }, [entries]);
 
   // Filter entries by selected tasks
+  // Convert Set to sorted array for stable dependency tracking
+  const selectedTaskIdsArray = useMemo(() =>
+    Array.from(selectedTaskIds).sort(),
+    [selectedTaskIds]
+  );
+
   const filteredEntries = useMemo(() => {
     if (!entries) return [];
     if (selectedTaskIds.size === 0) return entries;
@@ -120,7 +126,7 @@ export function CalendarView({ holidayMap, nextYearHolidayMap }: CalendarViewPro
       // Regular entry - show if its task is selected
       return selectedTaskIds.has(entry.task_id);
     });
-  }, [entries, selectedTaskIds]);
+  }, [entries, selectedTaskIdsArray, selectedTaskIds]);
 
   const handleDateClick = useCallback((date: Date) => {
     // Smart click behavior: if date has entries, show them; otherwise create new
