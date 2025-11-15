@@ -26,8 +26,13 @@ COPY . .
 # Build Next.js directly (skip bash script)
 RUN npm run build --workspace=web
 
-# Copy static assets to standalone (Next.js doesn't do this automatically)
-RUN cp -r packages/web/public packages/web/.next/standalone/packages/web/ && \
+# Debug: Check standalone structure
+RUN ls -la packages/web/.next/ || true
+RUN ls -la packages/web/.next/standalone/ || true
+
+# Create necessary directories and copy static assets
+RUN mkdir -p packages/web/.next/standalone/packages/web/.next && \
+    cp -r packages/web/public packages/web/.next/standalone/packages/web/ && \
     cp -r packages/web/.next/static packages/web/.next/standalone/packages/web/.next/
 
 # Stage 2: Production
