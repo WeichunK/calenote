@@ -170,7 +170,6 @@ yarn-error.log*
 .npm
 .yarn/
 .pnp.*
-package-lock.json
 yarn.lock
 
 # ============================================
