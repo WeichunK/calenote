@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   transpilePackages: ['@calenote/shared'],
   // Turbopack configuration (replaces webpack config)
   turbopack: {
