@@ -1,30 +1,48 @@
-FROM python:3.11-slim
+# Stage 1: Build
+FROM node:20-alpine AS builder
 
-# 設定工作目錄
 WORKDIR /app
 
-# 安裝系統依賴
-RUN apt-get update && apt-get install -y \
-    gcc \
-    postgresql-client \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+# Install bash (needed for postinstall scripts)
+RUN apk add --no-cache bash
 
-# 複製依賴檔案
-COPY requirements.txt .
+# Copy package files, lockfile, and scripts (needed for postinstall)
+COPY package.json package-lock.json ./
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/web/package.json ./packages/web/
+COPY scripts ./scripts
 
-# 安裝 Python 依賴
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies (use ci for faster, reproducible builds)
+# Note: bash is installed above for postinstall scripts
+RUN npm ci --legacy-peer-deps
 
-# 複製應用程式
+# Ensure TypeScript is accessible from packages/web (needed for next.config.ts)
+# In monorepo, TypeScript is hoisted to root but Next.js needs it in workspace context
+RUN ln -sf ../../node_modules/typescript packages/web/node_modules/typescript
+
+# Copy source code
 COPY . .
 
-# 建立非 root 用戶
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
+# Build Next.js directly (skip bash script)
+RUN npm run build --workspace=web
 
-# 暴露端口
-EXPOSE 8000
+# Copy static assets to standalone (Next.js doesn't do this automatically)
+RUN cp -r packages/web/public packages/web/.next/standalone/packages/web/ && \
+    cp -r packages/web/.next/static packages/web/.next/standalone/packages/web/.next/
 
-# 啟動命令（可在 docker-compose 中覆蓋）
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Stage 2: Production
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=8080
+
+# Copy the entire standalone directory (which now includes static and public)
+COPY --from=builder /app/packages/web/.next/standalone ./
+
+# Expose port
+EXPOSE 8080
+
+# Start the application
+CMD ["node", "packages/web/server.js"]
