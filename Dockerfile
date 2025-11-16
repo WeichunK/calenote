@@ -10,6 +10,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/web/package.json ./packages/web/
 COPY packages/shared/package.json ./packages/shared/
+# Copy scripts directory for postinstall hook
+COPY scripts ./scripts
 
 # Install dependencies with legacy-peer-deps flag
 RUN npm ci --legacy-peer-deps
