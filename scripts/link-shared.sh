@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Link the shared package to web/node_modules
 # This ensures Next.js can resolve @calenote/shared
 

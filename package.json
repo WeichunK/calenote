@@ -10,7 +10,7 @@
     "build": "npm run build --workspace=web",
     "backend": "cd app && uvicorn app.main:app --reload",
     "test": "pytest",
-    "postinstall": "bash scripts/link-shared.sh"
+    "postinstall": "sh scripts/link-shared.sh"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
