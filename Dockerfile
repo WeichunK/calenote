@@ -23,6 +23,14 @@ RUN ln -sf ../../node_modules/typescript packages/web/node_modules/typescript
 # Copy source code
 COPY . .
 
+# Build arguments for Next.js environment variables
+ARG NEXT_PUBLIC_API_URL=https://calenote-backend.zeabur.app/api/v1
+ARG NEXT_PUBLIC_WS_URL=wss://calenote-backend.zeabur.app/ws
+
+# Set environment variables for build time
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
+
 # Build Next.js directly (skip bash script)
 RUN npm run build --workspace=web
 
