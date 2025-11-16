@@ -2,6 +2,7 @@
 
 // API Configuration
 export const API_CONFIG = {
+  // IMPORTANT: Use HTTPS in production (Zeabur environment variables)
   BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
   WS_URL: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws',
   TIMEOUT: 10000, // 10 seconds
