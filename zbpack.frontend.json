@@ -1,0 +1,10 @@
+{
+  "app_dir": "packages/web",
+  "runtime": "node",
+  "node": {
+    "version": "20",
+    "install_cmd": "npm install",
+    "build_cmd": "npm run build --workspace=web",
+    "start_cmd": "npm run start --workspace=web -- -p ${PORT}"
+  }
+}
