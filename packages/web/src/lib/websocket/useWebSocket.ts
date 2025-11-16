@@ -31,8 +31,18 @@ export function useWebSocket({ calendarId, enabled = true }: UseWebSocketOptions
     }
 
     // Get WebSocket URL from environment
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'localhost:8000';
-    const wsUrl = apiUrl.replace(/^https?:\/\//, ''); // Remove protocol
+    // Use NEXT_PUBLIC_WS_URL if available, otherwise derive from API URL
+    const wsUrlFromEnv = process.env.NEXT_PUBLIC_WS_URL;
+    let wsUrl: string;
+
+    if (wsUrlFromEnv) {
+      // Remove protocol from WS URL (ws:// or wss://)
+      wsUrl = wsUrlFromEnv.replace(/^wss?:\/\//, '');
+    } else {
+      // Fallback: derive from API URL, removing /api/v1 path
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      wsUrl = apiUrl.replace(/^https?:\/\//, '').replace(/\/api\/v1$/, '');
+    }
 
     console.log('[useWebSocket] Initializing for calendar:', calendarId);
 
