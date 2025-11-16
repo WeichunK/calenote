@@ -16,12 +16,13 @@ COPY scripts ./scripts
 # Note: bash is installed above for postinstall scripts
 RUN npm ci --legacy-peer-deps
 
-# Ensure TypeScript is accessible from packages/web (needed for next.config.ts)
-# In monorepo, TypeScript is hoisted to root but Next.js needs it in workspace context
-RUN ln -sf ../../node_modules/typescript packages/web/node_modules/typescript
-
 # Copy source code
 COPY . .
+
+# Ensure TypeScript is accessible from packages/web (needed for next.config.ts)
+# In monorepo, TypeScript is hoisted to root but Next.js needs it in workspace context
+# IMPORTANT: Must be AFTER COPY to avoid being overwritten
+RUN ln -sf ../../node_modules/typescript packages/web/node_modules/typescript
 
 # Build arguments for Next.js environment variables
 ARG NEXT_PUBLIC_API_URL=https://calenote-backend.zeabur.app/api/v1
