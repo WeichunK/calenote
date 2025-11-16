@@ -1,8 +1,12 @@
 {
   "app_dir": ".",
   "node": {
-    "install_cmd": "cd ../.. && npm install",
+    "install_cmd": "cd ../.. && npm install --legacy-peer-deps",
     "build_cmd": "cd ../.. && npm run build --workspace=web",
     "start_cmd": "cd ../.. && npm run start --workspace=web"
+  },
+  "env": {
+    "NEXT_PUBLIC_API_URL": "https://calenote-backend.zeabur.app/api/v1",
+    "NEXT_PUBLIC_WS_URL": "wss://calenote-backend.zeabur.app/ws"
   }
 }
