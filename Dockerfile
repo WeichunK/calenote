@@ -22,7 +22,9 @@ COPY . .
 # Ensure TypeScript is accessible from packages/web (needed for next.config.ts)
 # In monorepo, TypeScript is hoisted to root but Next.js needs it in workspace context
 # IMPORTANT: Must be AFTER COPY to avoid being overwritten
-RUN ln -sf ../../node_modules/typescript packages/web/node_modules/typescript
+# Use cp -r instead of symlink to avoid symlink issues in Docker
+RUN mkdir -p packages/web/node_modules && \
+    cp -r node_modules/typescript packages/web/node_modules/
 
 # Build arguments for Next.js environment variables
 ARG NEXT_PUBLIC_API_URL=https://calenote-backend.zeabur.app/api/v1
