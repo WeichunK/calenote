@@ -1,12 +1,18 @@
 // Application constants
 
 // API Configuration
+// Runtime detection for Zeabur deployment
+const isZeaburProduction = typeof window !== 'undefined' && window.location.hostname.includes('zeabur.app');
+
 export const API_CONFIG = {
   // IMPORTANT: Use HTTPS in production (Zeabur environment variables)
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
+  // Falls back to Zeabur production URLs if env vars not set at build time
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL ||
+    (isZeaburProduction ? 'https://calenote-backend.zeabur.app/api/v1' : 'http://localhost:8000/api/v1'),
   // IMPORTANT: WS_URL should be the BASE WebSocket URL (without /ws path)
   // The /ws/calendar/{id} path will be added by the WebSocket client
-  WS_URL: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000',
+  WS_URL: process.env.NEXT_PUBLIC_WS_URL ||
+    (isZeaburProduction ? 'wss://calenote-backend.zeabur.app' : 'ws://localhost:8000'),
   TIMEOUT: 10000, // 10 seconds
 };
 
