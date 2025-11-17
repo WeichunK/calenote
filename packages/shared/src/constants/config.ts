@@ -4,14 +4,22 @@
 // Runtime detection for Zeabur deployment
 const isZeaburProduction = typeof window !== 'undefined' && window.location.hostname.includes('zeabur.app');
 
+// Get environment variables
+const envApiUrl = process.env.NEXT_PUBLIC_API_URL;
+const envWsUrl = process.env.NEXT_PUBLIC_WS_URL;
+
+// Check if env vars contain localhost (invalid for production)
+const isEnvApiUrlLocalhost = envApiUrl && envApiUrl.includes('localhost');
+const isEnvWsUrlLocalhost = envWsUrl && envWsUrl.includes('localhost');
+
 export const API_CONFIG = {
   // IMPORTANT: Use HTTPS in production (Zeabur environment variables)
-  // Falls back to Zeabur production URLs if env vars not set at build time
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL ||
+  // Falls back to Zeabur production URLs if env vars not set or contain localhost
+  BASE_URL: (envApiUrl && !isEnvApiUrlLocalhost) ? envApiUrl :
     (isZeaburProduction ? 'https://calenote-backend.zeabur.app/api/v1' : 'http://localhost:8000/api/v1'),
   // IMPORTANT: WS_URL should be the BASE WebSocket URL (without /ws path)
   // The /ws/calendar/{id} path will be added by the WebSocket client
-  WS_URL: process.env.NEXT_PUBLIC_WS_URL ||
+  WS_URL: (envWsUrl && !isEnvWsUrlLocalhost) ? envWsUrl :
     (isZeaburProduction ? 'wss://calenote-backend.zeabur.app' : 'ws://localhost:8000'),
   TIMEOUT: 10000, // 10 seconds
 };
