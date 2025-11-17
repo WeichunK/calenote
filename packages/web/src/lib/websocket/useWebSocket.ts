@@ -31,13 +31,15 @@ export function useWebSocket({ calendarId, enabled = true }: UseWebSocketOptions
     }
 
     // Get WebSocket URL from environment
-    // Use NEXT_PUBLIC_WS_URL if available, otherwise derive from API URL
+    // NEXT_PUBLIC_WS_URL should be the base URL WITHOUT /ws path
+    // Example: wss://calenote-backend.zeabur.app (NOT wss://...zeabur.app/ws)
     const wsUrlFromEnv = process.env.NEXT_PUBLIC_WS_URL;
     let wsUrl: string;
 
     if (wsUrlFromEnv) {
       // Remove protocol from WS URL (ws:// or wss://)
-      wsUrl = wsUrlFromEnv.replace(/^wss?:\/\//, '');
+      // Also remove any trailing /ws path if present (for backward compatibility)
+      wsUrl = wsUrlFromEnv.replace(/^wss?:\/\//, '').replace(/\/ws\/?$/, '');
     } else {
       // Fallback: derive from API URL, removing /api/v1 path
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';

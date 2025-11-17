@@ -52,6 +52,7 @@ async def websocket_endpoint(
         payload = decode_token(token)
         user_id = UUID(payload.get("sub"))
     except Exception as e:
+        print(f"❌ WebSocket auth failed: {e}")
         await websocket.close(code=1008, reason="Invalid token")
         return
 
@@ -63,6 +64,7 @@ async def websocket_endpoint(
     )
 
     if not has_access:
+        print(f"❌ User {user_id} has no access to calendar {calendar_id}")
         await websocket.close(code=1008, reason="No access to calendar")
         return
     

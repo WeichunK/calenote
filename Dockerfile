@@ -28,10 +28,13 @@ COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_module
 # Copy source code
 COPY . .
 
-# Set environment variables for build (hardcoded for Zeabur deployment)
+# Set environment variables for build
 # These MUST be set before npm run build for Next.js to embed them
-ENV NEXT_PUBLIC_API_URL=https://calenote-backend.zeabur.app/api/v1
-ENV NEXT_PUBLIC_WS_URL=wss://calenote-backend.zeabur.app/ws
+# Use ARG to accept build-time variables from Zeabur
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_WS_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
 ENV NODE_ENV=production
 
 # Build the frontend workspace
