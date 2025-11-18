@@ -1,5 +1,6 @@
 // API Client - 支持 Web 和 Mobile
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
+import { API_CONFIG } from '../constants/config';
 
 // Token management functions - will be overridden by specific implementations
 let getAccessTokenFn = (): string | null => null;
@@ -160,7 +161,34 @@ export class ApiClient {
 // Factory function
 export const createApiClient = (baseURL: string) => new ApiClient(baseURL);
 
-// Default instance for web (base URL will be set via env)
-export const apiClient = createApiClient(
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
-);
+// Lazy singleton for API client
+// This ensures the client is created at runtime (not build time)
+// and uses API_CONFIG.BASE_URL which detects environment via window.location
+let _apiClientInstance: ApiClient | null = null;
+
+export const apiClient = {
+  get<T>(url: string, params?: any): Promise<T> {
+    return getApiClient().get<T>(url, params);
+  },
+  post<T>(url: string, data?: any): Promise<T> {
+    return getApiClient().post<T>(url, data);
+  },
+  patch<T>(url: string, data?: any): Promise<T> {
+    return getApiClient().patch<T>(url, data);
+  },
+  delete<T>(url: string): Promise<T> {
+    return getApiClient().delete<T>(url);
+  },
+  put<T>(url: string, data?: any): Promise<T> {
+    return getApiClient().put<T>(url, data);
+  },
+};
+
+function getApiClient(): ApiClient {
+  if (!_apiClientInstance) {
+    const baseUrl = API_CONFIG.BASE_URL;
+    console.log('[API Client] Creating instance with baseURL:', baseUrl);
+    _apiClientInstance = createApiClient(baseUrl);
+  }
+  return _apiClientInstance;
+}
