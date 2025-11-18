@@ -32,10 +32,13 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
 
 # Start command with WebSocket support
 # Use uvicorn with --ws-max-size and increased timeout for WebSocket connections
+# --proxy-headers and --forwarded-allow-ips are CRITICAL for HTTPS behind reverse proxy
 CMD sh -c "alembic upgrade head && \
     uvicorn app.main:app \
     --host 0.0.0.0 \
     --port ${PORT:-8000} \
     --ws-max-size 16777216 \
     --timeout-keep-alive 300 \
+    --proxy-headers \
+    --forwarded-allow-ips='*' \
     --log-level info"
