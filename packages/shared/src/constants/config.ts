@@ -1,32 +1,60 @@
 // Application constants
 
 // API Configuration
-// Runtime detection for Zeabur deployment
-const isZeaburProduction = typeof window !== 'undefined' && window.location.hostname.includes('zeabur.app');
+// CRITICAL: Use getter functions to ensure runtime detection works correctly
+// Static values would be evaluated during SSR and carry over to client incorrectly
 
-// Get environment variables
-const envApiUrl = process.env.NEXT_PUBLIC_API_URL;
-const envWsUrl = process.env.NEXT_PUBLIC_WS_URL;
+// Helper function to detect Zeabur production environment
+function isZeaburProdEnv(): boolean {
+  if (typeof window === 'undefined') return false; // SSR
+  return window.location.hostname.includes('zeabur.app');
+}
 
-// Check if env vars are invalid for production (localhost or insecure HTTP)
-const isEnvApiUrlInvalid = envApiUrl && (
-  envApiUrl.includes('localhost') ||
-  (isZeaburProduction && envApiUrl.startsWith('http://'))
-);
-const isEnvWsUrlInvalid = envWsUrl && (
-  envWsUrl.includes('localhost') ||
-  (isZeaburProduction && envWsUrl.startsWith('ws://'))
-);
+// Helper function to detect local development
+function isLocalDev(): boolean {
+  if (typeof window === 'undefined') return false; // SSR
+  const hostname = window.location.hostname;
+  return hostname === 'localhost' || hostname === '127.0.0.1';
+}
 
+function getBaseUrl(): string {
+  // During SSR, use production URL
+  if (typeof window === 'undefined') {
+    return 'https://calenote-backend.zeabur.app/api/v1';
+  }
+
+  // Client-side: check hostname
+  if (isLocalDev()) {
+    return 'http://localhost:8000/api/v1';
+  }
+
+  // Production (Zeabur or other)
+  return 'https://calenote-backend.zeabur.app/api/v1';
+}
+
+function getWsUrl(): string {
+  // During SSR, use production URL
+  if (typeof window === 'undefined') {
+    return 'wss://calenote-backend.zeabur.app';
+  }
+
+  // Client-side: check hostname
+  if (isLocalDev()) {
+    return 'ws://localhost:8000';
+  }
+
+  // Production (Zeabur or other)
+  return 'wss://calenote-backend.zeabur.app';
+}
+
+// Export as an object with getters to ensure fresh evaluation each time
 export const API_CONFIG = {
-  // IMPORTANT: Use HTTPS in production (Zeabur environment variables)
-  // Falls back to Zeabur production URLs if env vars are invalid (localhost or insecure protocol)
-  BASE_URL: (envApiUrl && !isEnvApiUrlInvalid) ? envApiUrl :
-    (isZeaburProduction ? 'https://calenote-backend.zeabur.app/api/v1' : 'http://localhost:8000/api/v1'),
-  // IMPORTANT: WS_URL should be the BASE WebSocket URL (without /ws path)
-  // The /ws/calendar/{id} path will be added by the WebSocket client
-  WS_URL: (envWsUrl && !isEnvWsUrlInvalid) ? envWsUrl :
-    (isZeaburProduction ? 'wss://calenote-backend.zeabur.app' : 'ws://localhost:8000'),
+  get BASE_URL() {
+    return getBaseUrl();
+  },
+  get WS_URL() {
+    return getWsUrl();
+  },
   TIMEOUT: 10000, // 10 seconds
 };
 
